@@ -107,6 +107,7 @@ def top_k_top_p_filtering(
     return logits
 
 
+#  generates the next 10 words (assuming eos token isn't generated first) given an input_id
 def generate_next_word(input_ids1, temperature=0.85, topk=100, device="cuda:0"):
     current_word = 0
     for _ in range(10):
@@ -118,21 +119,24 @@ def generate_next_word(input_ids1, temperature=0.85, topk=100, device="cuda:0"):
 
         next_token_logits = next_token_logits1 * temperature
         probs = F.softmax(next_token_logits, dim=-1)
-        next_tokens = torch.multinomial(probs, num_samples=1).squeeze(1)
+        next_tokens = torch.multinomial(probs, num_samples=1).squeeze(1)  # sampling next tokens from distribution
         # unfinished_sents = torch.ones(1, dtype=torch.long, device=device)
         unfinished_sents = torch.ones(1, dtype=torch.long).cuda()
         tokens_to_add = next_tokens * unfinished_sents + tokenizer.pad_token_id * (
             1 - unfinished_sents
-        )
+        )  # same content as next_tokens
 
         if tokenizer.eos_token_id in next_tokens[0]:
             input_ids1 = torch.cat([input_ids1, tokens_to_add.unsqueeze(-1)], dim=-1)
             return "", True
 
+        #  what does this do? exit early if two spaces are generated in a row?
         if tokenizer.decode(tokens_to_add[0])[0] == " ":
             if current_word == 1:
+                #  why decode here and nowhere else?
                 return tokenizer.decode(input_ids1[0]).split()[-1], False
             current_word += 1
+
         input_ids1 = torch.cat([input_ids1, tokens_to_add.unsqueeze(-1)], dim=-1)
     return None
 
