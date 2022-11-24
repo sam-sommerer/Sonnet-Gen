@@ -12,10 +12,7 @@ class Evaluator(object):
         self.data_loader = data_loader
         self.model = model
 
-        self.batch_variables = {
-            "model": model,
-            "data": data_loader
-        }
+        self.batch_variables = {"model": model, "data": data_loader}
 
         self.opt = opt
 
@@ -23,8 +20,7 @@ class Evaluator(object):
         self.batch_variables["split"] = split
         print("Evaluating {}".format(split))
 
-        epoch_losses = self.epoch(
-            self.opt, self.model, self.data_loader, split, keyset)
+        epoch_losses = self.epoch(self.opt, self.model, self.data_loader, split, keyset)
 
         self.print_result(split, epoch_losses)
 
@@ -43,8 +39,7 @@ class Evaluator(object):
         start_time = time.time()
 
         # Initialize progress bar
-        bar = utils.set_progress_bar(
-            data_loader.total_size[split])
+        bar = utils.set_progress_bar(data_loader.total_size[split])
 
         reset = False
 
@@ -54,8 +49,8 @@ class Evaluator(object):
                 start = data_loader.offset_summary(split)
 
                 outputs = self.batch(
-                    opt, nums, average_loss,
-                    self.batch_variables, eval_mode=True)
+                    opt, nums, average_loss, self.batch_variables, eval_mode=True
+                )
 
                 end = data_loader.offset_summary(split)
 
@@ -68,18 +63,19 @@ class Evaluator(object):
 
                 if cfg.toy and self.counter(nums) > 100:
                     break
-                if (opt.eval.es != "full" and
-                        (self.counter(nums) > opt.eval.es)):
+                if opt.eval.es != "full" and (self.counter(nums) > opt.eval.es):
                     break
 
         nums = outputs["nums"]
 
         torch.cuda.synchronize()
 
-        print("{} evaluation completed in: {} s".format(
-            split.capitalize(), round(time.time() - start_time, 4)))
+        print(
+            "{} evaluation completed in: {} s".format(
+                split.capitalize(), round(time.time() - start_time, 4)
+            )
+        )
 
-        average_loss = self.compute_final_scores(
-            average_loss, nums)
+        average_loss = self.compute_final_scores(average_loss, nums)
 
         return average_loss

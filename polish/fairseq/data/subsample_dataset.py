@@ -11,10 +11,10 @@ from . import BaseWrapperDataset
 class SubsampleDataset(BaseWrapperDataset):
     """Subsamples a given dataset by a specified ratio. Subsampling is done on the number of examples
 
-            Args:
-                dataset (~torch.utils.data.Dataset): dataset to subsample
-                size_ratio(float): the ratio to subsample to. must be between 0 and 1 (exclusive)
-            """
+    Args:
+        dataset (~torch.utils.data.Dataset): dataset to subsample
+        size_ratio(float): the ratio to subsample to. must be between 0 and 1 (exclusive)
+    """
 
     def __init__(self, dataset, size_ratio):
         super().__init__(dataset)

@@ -1,4 +1,3 @@
-
 import random
 
 import torch
@@ -44,7 +43,8 @@ def main(num):
 
     # Initialize path to pre-set data loader
     path = "data/conceptnet/processed/{}/{}.pickle".format(
-        opt.exp, utils.make_name_string(opt.data))
+        opt.exp, utils.make_name_string(opt.data)
+    )
 
     # Make data loader
     data_loader = data.make_data_loader(opt)
@@ -89,14 +89,16 @@ def main(num):
     print("Building Model")
 
     model = models.make_model(
-        opt, n_vocab, n_ctx, n_special,
-        load=(opt.net.init=="pt"))
+        opt, n_vocab, n_ctx, n_special, load=(opt.net.init == "pt")
+    )
 
     print("Done.")
 
-    print("Files will be logged at: {}".format(
-        utils.make_name(opt, prefix="results/losses/",
-                        is_dir=True, eval_=True)))
+    print(
+        "Files will be logged at: {}".format(
+            utils.make_name(opt, prefix="results/losses/", is_dir=True, eval_=True)
+        )
+    )
 
     data_loader.reset_offsets("train", keys=["total"])
 
@@ -109,28 +111,28 @@ def main(num):
         cfg.do_gpu = True
         torch.cuda.set_device(cfg.device)
         if config.multigpu:
-            model = models.multi_gpu(
-                model, config.gpu_indices).cuda()
+            model = models.multi_gpu(model, config.gpu_indices).cuda()
         else:
             model.cuda(cfg.device)
         print("Done.")
 
     print("Training")
 
-    optimizer = OpenAIAdam(model.parameters(),
-                           lr=opt.train.dynamic.lr,
-                           schedule=opt.train.static.lrsched,
-                           warmup=opt.train.static.lrwarm,
-                           t_total=meta.iterations,
-                           b1=opt.train.static.b1,
-                           b2=opt.train.static.b2,
-                           e=opt.train.static.e,
-                           l2=opt.train.static.l2,
-                           vector_l2=opt.train.static.vl2,
-                           max_grad_norm=opt.train.static.clip)
+    optimizer = OpenAIAdam(
+        model.parameters(),
+        lr=opt.train.dynamic.lr,
+        schedule=opt.train.static.lrsched,
+        warmup=opt.train.static.lrwarm,
+        t_total=meta.iterations,
+        b1=opt.train.static.b1,
+        b2=opt.train.static.b2,
+        e=opt.train.static.e,
+        l2=opt.train.static.l2,
+        vector_l2=opt.train.static.vl2,
+        max_grad_norm=opt.train.static.clip,
+    )
 
-    trainer = train.make_trainer(
-        opt, meta, data_loader, model, optimizer)
+    trainer = train.make_trainer(opt, meta, data_loader, model, optimizer)
     print(data_loader.sequences["dev"]["total"].max())
     trainer.set_generator(opt, model, data_loader)
     trainer.set_evaluator(opt, model, data_loader)

@@ -13,21 +13,21 @@ from fairseq.optim.bmuf import FairseqBMUF  # noqa
 
 
 __all__ = [
-    'FairseqOptimizer',
-    'FP16Optimizer',
-    'MemoryEfficientFP16Optimizer',
+    "FairseqOptimizer",
+    "FP16Optimizer",
+    "MemoryEfficientFP16Optimizer",
 ]
 
 
 build_optimizer, register_optimizer, OPTIMIZER_REGISTRY = registry.setup_registry(
-    '--optimizer',
+    "--optimizer",
     base_class=FairseqOptimizer,
-    default='nag',
+    default="nag",
 )
 
 
 # automatically import any Python files in the optim/ directory
 for file in os.listdir(os.path.dirname(__file__)):
-    if file.endswith('.py') and not file.startswith('_'):
-        module = file[:file.find('.py')]
-        importlib.import_module('fairseq.optim.' + module)
+    if file.endswith(".py") and not file.startswith("_"):
+        module = file[: file.find(".py")]
+        importlib.import_module("fairseq.optim." + module)

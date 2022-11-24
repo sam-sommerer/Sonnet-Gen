@@ -20,24 +20,34 @@ def do_gen_run(opt, generator, l, split="dev", scores={}):
             scores[score_name][l] += [score_val]
 
     # Save generated sequences
-    save_sequences(opt, sequences, avg_scores, indiv_scores,
-                   l, split, opt.eval.gs == "full",
-                   generator.data_loader)
+    save_sequences(
+        opt,
+        sequences,
+        avg_scores,
+        indiv_scores,
+        l,
+        split,
+        opt.eval.gs == "full",
+        generator.data_loader,
+    )
 
 
-def save_sequences(opt, sequences, avg_scores, indiv_scores,
-                   l, split, full, data_loader):
+def save_sequences(
+    opt, sequences, avg_scores, indiv_scores, l, split, full, data_loader
+):
     # This seems a bit roundabout since l = opt.train.dynamic in train.py
     # But it's in case we start checkpointing outside of epoch boundaries
     opt.train.dynamic.epoch = l
 
     if cfg.save:
         if full:
-            names = {"gens": "gens", "scores": "scores",
-                     "indiv": "indiv.scores"}
+            names = {"gens": "gens", "scores": "scores", "indiv": "indiv.scores"}
         else:
-            names = {"gens": "gens.small", "scores": "scores.small",
-                     "indiv": "indiv.scores.small"}
+            names = {
+                "gens": "gens.small",
+                "scores": "scores.small",
+                "indiv": "indiv.scores.small",
+            }
         # Save generated sequences
         data.save_eval_file(opt, sequences, names["gens"], split)
 
@@ -48,8 +58,7 @@ def save_sequences(opt, sequences, avg_scores, indiv_scores,
 
             if split == "dev":
                 # Save individual scores
-                data.save_eval_file(
-                    opt, indiv_scores, names["indiv"], split)
+                data.save_eval_file(opt, indiv_scores, names["indiv"], split)
 
 
 class Generator(object):
@@ -60,13 +69,10 @@ class Generator(object):
         self.model = model
         self.data_loader = data_loader
 
-        self.sampler = sampling.make_sampler(
-            opt.eval.sample, opt, data_loader)
-
+        self.sampler = sampling.make_sampler(opt.eval.sample, opt, data_loader)
 
     def generate(self, split="dev"):
         pass
 
     def generate_batch(self, sequences, split, verbose=False, bs=32):
         pass
-

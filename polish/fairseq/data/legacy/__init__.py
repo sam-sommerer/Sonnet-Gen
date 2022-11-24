@@ -8,8 +8,8 @@ from .block_pair_dataset import BlockPairDataset
 from .masked_lm_dataset import MaskedLMDataset
 
 __all__ = [
-    'BertDictionary',
-    'BlockPairDataset',
-    'MaskedLMDataset',
-    'MaskedLMDictionary',
+    "BertDictionary",
+    "BlockPairDataset",
+    "MaskedLMDataset",
+    "MaskedLMDictionary",
 ]

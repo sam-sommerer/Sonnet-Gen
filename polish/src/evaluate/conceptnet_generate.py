@@ -18,8 +18,7 @@ class ConceptNetGenerator(base_generate.Generator):
         self.model = model
         self.data_loader = data_loader
 
-        self.sampler = sampling.make_sampler(
-            opt.eval.sample, opt, data_loader)
+        self.sampler = sampling.make_sampler(opt.eval.sample, opt, data_loader)
 
     def reset_sequences(self):
         return []
@@ -41,8 +40,7 @@ class ConceptNetGenerator(base_generate.Generator):
         sequences = self.reset_sequences()
 
         # Initialize progress bar
-        bar = utils.set_progress_bar(
-            self.data_loader.total_size[split] / 2)
+        bar = utils.set_progress_bar(self.data_loader.total_size[split] / 2)
 
         reset = False
 
@@ -65,12 +63,11 @@ class ConceptNetGenerator(base_generate.Generator):
 
                 if cfg.toy and count > 10:
                     break
-                if (self.opt.eval.gs != "full" and (count > opt.eval.gs)):
+                if self.opt.eval.gs != "full" and (count > opt.eval.gs):
                     break
 
         torch.cuda.synchronize()
-        print("{} generations completed in: {} s".format(
-            split, time.time() - start))
+        print("{} generations completed in: {} s".format(split, time.time() - start))
 
         # Compute scores for sequences (e.g., BLEU, ROUGE)
         # Computes scores that the generator is initialized with
@@ -83,26 +80,36 @@ class ConceptNetGenerator(base_generate.Generator):
 
     def generate_batch(self, sequences, split, verbose=False, bs=1):
         # Sample batch from data loader
-        batch, reset = self.data_loader.sample_batch(
-            split, bs=bs, cat="positive")
+        batch, reset = self.data_loader.sample_batch(split, bs=bs, cat="positive")
 
         start_idx = self.data_loader.max_e1 + self.data_loader.max_r
         max_end_len = self.data_loader.max_e2
 
         context = batch["sequences"][:, :start_idx]
         reference = batch["sequences"][:, start_idx:]
-        init = "".join([self.data_loader.vocab_decoder[i].replace(
-            '</w>', ' ') for i in context[:, :self.data_loader.max_e1].squeeze().tolist() if i]).strip()
+        init = "".join(
+            [
+                self.data_loader.vocab_decoder[i].replace("</w>", " ")
+                for i in context[:, : self.data_loader.max_e1].squeeze().tolist()
+                if i
+            ]
+        ).strip()
 
         start = self.data_loader.max_e1
         end = self.data_loader.max_e1 + self.data_loader.max_r
 
-        attr = "".join([self.data_loader.vocab_decoder[i].replace(
-            '</w>', ' ') for i in context[:, start:end].squeeze(0).tolist() if i]).strip()
+        attr = "".join(
+            [
+                self.data_loader.vocab_decoder[i].replace("</w>", " ")
+                for i in context[:, start:end].squeeze(0).tolist()
+                if i
+            ]
+        ).strip()
 
         # Decode sequence
         sampling_result = self.sampler.generate_sequence(
-            batch, self.model, self.data_loader, start_idx, max_end_len)
+            batch, self.model, self.data_loader, start_idx, max_end_len
+        )
 
         sampling_result["key"] = batch["key"]
         sampling_result["e1"] = init

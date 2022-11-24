@@ -65,7 +65,7 @@ class Dictionary(object):
 
         Can optionally remove BPE symbols or escape <unk> words.
         """
-        #print("self is",self.indices)
+        # print("self is",self.indices)
         if torch.is_tensor(tensor) and tensor.dim() == 2:
             return "\n".join(self.string(t, bpe_symbol, escape_unk) for t in tensor)
 

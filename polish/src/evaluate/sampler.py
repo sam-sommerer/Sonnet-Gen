@@ -8,11 +8,13 @@ import src.models.utils as model_utils
 import src.evaluate.utils as eval_utils
 import src.train.batch as batch_utils
 
+
 def make_sampler(sampler_type, opt, *args, **kwargs):
     print("Initializing Greedy Sampler")
     return GreedySampler(opt, *args, **kwargs)
 
-class Sampler():
+
+class Sampler:
     def __init__(self, opt, data_loader, batch_mode=False):
         # Token on which to end sampling
         self.end_token = data_loader.vocab_encoder[data.end_token]
@@ -38,10 +40,10 @@ class GreedySampler(Sampler):
         MMB = batch["attention_mask"][:, :start_idx]
 
         XMB = model_utils.prepare_position_embeddings(
-            self.opt, data_loader.vocab_encoder, XMB.unsqueeze(-1))
+            self.opt, data_loader.vocab_encoder, XMB.unsqueeze(-1)
+        )
 
-        lm_probs = F.log_softmax(model(
-            XMB.unsqueeze(1), sequence_mask=MMB), dim=-1)
+        lm_probs = F.log_softmax(model(XMB.unsqueeze(1), sequence_mask=MMB), dim=-1)
 
         values, indices = lm_probs[:, -1, :].max(dim=-1)
         seqs = indices.clone().unsqueeze(1)
@@ -56,8 +58,7 @@ class GreedySampler(Sampler):
         # Sample from top k
 
         for _ in range(self.opt.eval.smax):
-            lm_probs = F.log_softmax(model(
-                XMB.unsqueeze(1), sequence_mask=MMB), dim=-1)
+            lm_probs = F.log_softmax(model(XMB.unsqueeze(1), sequence_mask=MMB), dim=-1)
 
             # Sample from top k
             values, next_idx = lm_probs[:, -1, :].max(dim=-1)
@@ -77,10 +78,19 @@ class GreedySampler(Sampler):
         beams = []
 
         for beam in seqs:
-            beams.append(" ".join("".join(
-                [data_loader.vocab_decoder[tok.item()].replace(
-                    '</w>', ' ').replace('\n', '')
-                 for tok in beam if tok != self.end_token]).split()))
+            beams.append(
+                " ".join(
+                    "".join(
+                        [
+                            data_loader.vocab_decoder[tok.item()]
+                            .replace("</w>", " ")
+                            .replace("\n", "")
+                            for tok in beam
+                            if tok != self.end_token
+                        ]
+                    ).split()
+                )
+            )
 
         sampling_result = {
             "sequence": beams[0],
@@ -88,7 +98,7 @@ class GreedySampler(Sampler):
             "beam_losses": [loss.item()],
             "loss": loss.item(),
             "beam_lengths": [counts],
-            "length": counts
+            "length": counts,
         }
 
         return sampling_result
@@ -113,30 +123,31 @@ class TopKSampler(Sampler):
         MMB = batch["attention_mask"][:, :start_idx]
 
         XMB = model_utils.prepare_position_embeddings(
-            self.opt, data_loader.vocab_encoder, XMB.unsqueeze(-1))
+            self.opt, data_loader.vocab_encoder, XMB.unsqueeze(-1)
+        )
 
-        lm_probs = F.log_softmax(model(
-            XMB.unsqueeze(1), sequence_mask=MMB), dim=-1)
+        lm_probs = F.log_softmax(model(XMB.unsqueeze(1), sequence_mask=MMB), dim=-1)
 
         values, indices = lm_probs[:, -1, :].topk(self.opt.eval.k)
         seqs = indices.t().clone()
 
-        losses = - values.view(-1, 1)
+        losses = -values.view(-1, 1)
 
         ended = (seqs == self.end_token).float()
-        counts = (1 - ended)
+        counts = 1 - ended
         XMB = XMB.repeat(self.opt.eval.k, 1, 1)
         MMB = MMB.repeat(self.opt.eval.k, 1)
         next_pos = XMB[:, -1:, 1] + 1
-        next_x = torch.cat((indices.view(self.opt.eval.k, -1), next_pos), -1).unsqueeze(1)
+        next_x = torch.cat((indices.view(self.opt.eval.k, -1), next_pos), -1).unsqueeze(
+            1
+        )
         XMB = torch.cat((XMB, next_x), 1)
         MMB = torch.cat([MMB, torch.ones(XMB.size(0), 1, device=MMB.device)], 1)
 
         # Sample from top k
 
         for _ in range(end_len):
-            lm_probs = F.log_softmax(model(
-                XMB.unsqueeze(1), sequence_mask=MMB), dim=-1)
+            lm_probs = F.log_softmax(model(XMB.unsqueeze(1), sequence_mask=MMB), dim=-1)
 
             # Sample from top k
             values, indices = lm_probs[:, -1, :].topk(self.opt.eval.k)
@@ -147,7 +158,7 @@ class TopKSampler(Sampler):
 
             next_idx = next_idx * (1 - ended).long() + ended.long() * self.end_token
 
-            counts += (1 - ended)
+            counts += 1 - ended
 
             seqs = torch.cat([seqs, next_idx], 1)
 
@@ -161,10 +172,19 @@ class TopKSampler(Sampler):
         beams = []
 
         for beam in seqs:
-            beams.append(" ".join("".join(
-                [data_loader.vocab_decoder[tok.item()].replace(
-                    '</w>', ' ').replace('\n', '')
-                 for tok in beam if tok != self.end_token]).split()))
+            beams.append(
+                " ".join(
+                    "".join(
+                        [
+                            data_loader.vocab_decoder[tok.item()]
+                            .replace("</w>", " ")
+                            .replace("\n", "")
+                            for tok in beam
+                            if tok != self.end_token
+                        ]
+                    ).split()
+                )
+            )
 
         sampling_result = {
             "sequence": beams[0],
@@ -172,7 +192,7 @@ class TopKSampler(Sampler):
             "beam_losses": losses.squeeze().tolist(),
             "loss": losses[0].item(),
             "beam_lengths": counts.long().squeeze().tolist(),
-            "length": counts[0].long().item()
+            "length": counts[0].long().item(),
         }
 
         return sampling_result
@@ -211,20 +231,20 @@ class BeamSampler(TopKSampler):
         MMB = batch["attention_mask"][:, :start_idx]
 
         XMB = model_utils.prepare_position_embeddings(
-            self.opt, data_loader.vocab_encoder, XMB.unsqueeze(-1))
+            self.opt, data_loader.vocab_encoder, XMB.unsqueeze(-1)
+        )
 
         tokens = []
         beam_losses = []
         # Beam Search
         beam_lls, beam_toks, beam_seqs = None, None, None
-        lm_probs = F.log_softmax(model(
-            XMB.unsqueeze(1), sequence_mask=MMB), dim=-1)
+        lm_probs = F.log_softmax(model(XMB.unsqueeze(1), sequence_mask=MMB), dim=-1)
         dist = lm_probs[:, -1, :].squeeze()
         beam_lls, beam_toks = dist.topk(self.opt.eval.bs)
         beam_losses.append(beam_lls)
 
         ended = (beam_toks == self.end_token).float()
-        counts = (2 - ended)
+        counts = 2 - ended
         beam_toks = beam_toks.unsqueeze(1)
         beam_seqs = beam_toks.clone()
         XMB = XMB.repeat(self.opt.eval.bs, 1, 1)
@@ -237,8 +257,7 @@ class BeamSampler(TopKSampler):
         for _ in range(end_len):
 
             # Compute distribution for current beam
-            lm_probs = F.log_softmax(model(
-                XMB.unsqueeze(1), sequence_mask=MMB), dim=-1)
+            lm_probs = F.log_softmax(model(XMB.unsqueeze(1), sequence_mask=MMB), dim=-1)
             dist = lm_probs[:, -1, :].squeeze()
 
             # get hypothesis tokens for distribution
@@ -252,27 +271,42 @@ class BeamSampler(TopKSampler):
 
             if paper_results:
                 # Results from paper with slightly buggy beam search
-                current_beam_lls = beam_lls.unsqueeze(1).repeat(
-                    1, self.opt.eval.bs).view(self.opt.eval.bs**2)
+                current_beam_lls = (
+                    beam_lls.unsqueeze(1)
+                    .repeat(1, self.opt.eval.bs)
+                    .view(self.opt.eval.bs**2)
+                )
             else:
                 # Current beam search implementation
-                current_beam_lls = beam_losses[-1].unsqueeze(1).repeat(
-                    1, self.opt.eval.bs).view(self.opt.eval.bs**2)
+                current_beam_lls = (
+                    beam_losses[-1]
+                    .unsqueeze(1)
+                    .repeat(1, self.opt.eval.bs)
+                    .view(self.opt.eval.bs**2)
+                )
 
             # Compute losses of hypotheses, masking those that have ended
-            hyp_beam_lls = (hyp_beam_lls.view(self.opt.eval.bs**2) *
-                            hypothesis_mask.view(-1)) + current_beam_lls
+            hyp_beam_lls = (
+                hyp_beam_lls.view(self.opt.eval.bs**2) * hypothesis_mask.view(-1)
+            ) + current_beam_lls
 
             # Get normalizer for sequences
-            temp_counts = counts.unsqueeze(1).repeat(1, self.opt.eval.bs).view(
-                self.opt.eval.bs ** 2)
+            temp_counts = (
+                counts.unsqueeze(1)
+                .repeat(1, self.opt.eval.bs)
+                .view(self.opt.eval.bs**2)
+            )
 
             # Select best beams with lowest aggregate loss
-            beam_lls, top_beam_idxs = (hyp_beam_lls / temp_counts).topk(self.opt.eval.bs)
+            beam_lls, top_beam_idxs = (hyp_beam_lls / temp_counts).topk(
+                self.opt.eval.bs
+            )
 
             # Update placements in beam based on selecetion
-            beam_losses = [i.index_select(0, top_beam_idxs // self.opt.eval.bs)
-                           for i in beam_losses]
+            beam_losses = [
+                i.index_select(0, top_beam_idxs // self.opt.eval.bs)
+                for i in beam_losses
+            ]
             ended = ended.index_select(0, top_beam_idxs // self.opt.eval.bs)
             counts = temp_counts.index_select(0, top_beam_idxs)
 
@@ -290,15 +324,25 @@ class BeamSampler(TopKSampler):
             counts = counts + (1 - ended)
 
             # Update beam sequences
-            beam_seqs = beam_seqs.t().repeat(self.opt.eval.bs, 1).t().contiguous().view(
-                self.opt.eval.bs**2, -1)[top_beam_idxs]
+            beam_seqs = (
+                beam_seqs.t()
+                .repeat(self.opt.eval.bs, 1)
+                .t()
+                .contiguous()
+                .view(self.opt.eval.bs**2, -1)[top_beam_idxs]
+            )
             beam_seqs = torch.cat((beam_seqs, beam_toks.unsqueeze(1)), dim=1)
 
             # I have no idea what's going on but Ari's on point with it
-            XMB = XMB.transpose(0, 1).transpose(1, 2).repeat(
-                self.opt.eval.bs, 1, 1).transpose(2, 1).transpose(
-                1, 0).contiguous().view(
-                self.opt.eval.bs**2, XMB.size(1), XMB.size(2))[top_beam_idxs]
+            XMB = (
+                XMB.transpose(0, 1)
+                .transpose(1, 2)
+                .repeat(self.opt.eval.bs, 1, 1)
+                .transpose(2, 1)
+                .transpose(1, 0)
+                .contiguous()
+                .view(self.opt.eval.bs**2, XMB.size(1), XMB.size(2))[top_beam_idxs]
+            )
 
             XMB, MMB = self.append_batch(XMB, beam_toks, MMB)
 
@@ -308,10 +352,19 @@ class BeamSampler(TopKSampler):
         beams = []
 
         for beam in beam_seqs:
-            beams.append(" ".join("".join(
-                [data_loader.vocab_decoder[tok.item()].replace(
-                    '</w>', ' ').replace('\n', '')
-                 for tok in beam if tok != self.end_token]).split()))
+            beams.append(
+                " ".join(
+                    "".join(
+                        [
+                            data_loader.vocab_decoder[tok.item()]
+                            .replace("</w>", " ")
+                            .replace("\n", "")
+                            for tok in beam
+                            if tok != self.end_token
+                        ]
+                    ).split()
+                )
+            )
 
         sampling_result = {
             "sequence": beams[0],
@@ -319,7 +372,7 @@ class BeamSampler(TopKSampler):
             "beam_losses": beam_lls.tolist(),
             "loss": beam_lls[0].item(),
             "beam_lengths": counts.tolist(),
-            "length": counts[0].item()
+            "length": counts[0].item(),
         }
 
         return sampling_result

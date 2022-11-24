@@ -21,8 +21,7 @@ def make_new_tensor_from_list(items, device_num, dtype=torch.float32):
 
 # is_dir look ast at whether the name we make
 # should be a directory or a filename
-def make_name(opt, prefix="", eval_=False, is_dir=True, set_epoch=None,
-              do_epoch=True):
+def make_name(opt, prefix="", eval_=False, is_dir=True, set_epoch=None, do_epoch=True):
     string = prefix
     string += "{}-{}".format(opt.dataset, opt.exp)
     string += "/"
@@ -46,8 +45,7 @@ def make_name(opt, prefix="", eval_=False, is_dir=True, set_epoch=None,
     # the directory already exists
     if not is_dir:
         mkpath(string)
-    string += make_name_string(
-        opt.train.dynamic, True, do_epoch, set_epoch)
+    string += make_name_string(opt.train.dynamic, True, do_epoch, set_epoch)
     if is_dir:
         mkpath(string)
 
@@ -57,14 +55,11 @@ def make_name(opt, prefix="", eval_=False, is_dir=True, set_epoch=None,
 def make_name_string(dict_, final=False, do_epoch=False, set_epoch=None):
     if final:
         if not do_epoch:
-            string = "{}_{}_{}".format(
-                dict_.lr, dict_.optim, dict_.bs)
+            string = "{}_{}_{}".format(dict_.lr, dict_.optim, dict_.bs)
         elif set_epoch is not None:
-            string = "{}_{}_{}_{}".format(
-                dict_.lr, dict_.optim, dict_.bs, set_epoch)
+            string = "{}_{}_{}_{}".format(dict_.lr, dict_.optim, dict_.bs, set_epoch)
         else:
-            string = "{}_{}_{}_{}".format(
-                dict_.lr, dict_.optim, dict_.bs, dict_.epoch)
+            string = "{}_{}_{}_{}".format(dict_.lr, dict_.optim, dict_.bs, dict_.epoch)
 
         return string
 
@@ -131,8 +126,7 @@ def replace_params(base_config, changes):
 
 
 def initialize_progress_bar(data_loader_list):
-    num_examples = sum([len(tensor) for tensor in
-                        data_loader_list.values()])
+    num_examples = sum([len(tensor) for tensor in data_loader_list.values()])
     return set_progress_bar(num_examples)
 
 
@@ -182,23 +176,23 @@ def remove_none(l):
 # Taken from Jobman 0.1
 class DD(dict):
     def __getattr__(self, attr):
-        if attr == '__getstate__':
+        if attr == "__getstate__":
             return super(DD, self).__getstate__
-        elif attr == '__setstate__':
+        elif attr == "__setstate__":
             return super(DD, self).__setstate__
-        elif attr == '__slots__':
+        elif attr == "__slots__":
             return super(DD, self).__slots__
         return self[attr]
 
     def __setattr__(self, attr, value):
         # Safety check to ensure consistent behavior with __getattr__.
-        assert attr not in ('__getstate__', '__setstate__', '__slots__')
-#         if attr.startswith('__'):
-#             return super(DD, self).__setattr__(attr, value)
+        assert attr not in ("__getstate__", "__setstate__", "__slots__")
+        #         if attr.startswith('__'):
+        #             return super(DD, self).__setattr__(attr, value)
         self[attr] = value
 
     def __str__(self):
-        return 'DD%s' % dict(self)
+        return "DD%s" % dict(self)
 
     def __repr__(self):
         return str(self)
@@ -210,92 +204,123 @@ class DD(dict):
         return z
 
 
-
-
 # utils for hyperbole relationships and get probability values as s1, s2, s3 scores
-rel_characteristic = ['CapableOf','DefinedAs','HasFirstSubevent','HasLastSubevent','HasSubevent',
-    'IsA',
-    'UsedFor']
+rel_characteristic = [
+    "CapableOf",
+    "DefinedAs",
+    "HasFirstSubevent",
+    "HasLastSubevent",
+    "HasSubevent",
+    "IsA",
+    "UsedFor",
+]
 
-causal_relations = ['CausesDesire', 'HasFirstSubevent', 'HasLastSubevent']
-def getprob(input_e1, input_e2, relation, prnt = False):
+causal_relations = ["CausesDesire", "HasFirstSubevent", "HasLastSubevent"]
+
+
+def getprob(input_e1, input_e2, relation, prnt=False):
     if relation not in data.conceptnet_data.conceptnet_relations:
         if relation == "common":
             relation = common_rels
         else:
             relation = "all"
     outputs = interactive.evaluate_conceptnet_sequence(
-        input_e1, model, data_loader, text_encoder, relation, input_e2)
+        input_e1, model, data_loader, text_encoder, relation, input_e2
+    )
 
     for key, value in outputs.items():
         if prnt:
-            print("{} \t {} {} {} \t\t norm: {:.4f} \t".format(
-                input_e1, key, rel_formatting[key], input_e2, value['normalized_loss']))
-        return round(value['normalized_loss'],4)
+            print(
+                "{} \t {} {} {} \t\t norm: {:.4f} \t".format(
+                    input_e1,
+                    key,
+                    rel_formatting[key],
+                    input_e2,
+                    value["normalized_loss"],
+                )
+            )
+        return round(value["normalized_loss"], 4)
 
 
-def getPred(input_event, relation, prnt = True, sampling_algorithm = 'beam-2'):
+def getPred(input_event, relation, prnt=True, sampling_algorithm="beam-2"):
     sampler = interactive.set_sampler(opt, sampling_algorithm, data_loader)
-    outputs = interactive.get_conceptnet_sequence(input_event, model, sampler, data_loader, text_encoder, relation, prnt)
+    outputs = interactive.get_conceptnet_sequence(
+        input_event, model, sampler, data_loader, text_encoder, relation, prnt
+    )
     return outputs
 
 
-
-def reverse_property(input_event, sampling_algorithm = 'beam-25'):
-    reverse_sampler = reverse_interactive.set_sampler(reverse_opt, sampling_algorithm, reverse_data_loader)
-    reverse_outputs = reverse_interactive.get_conceptnet_sequence(input_event, reverse_model, reverse_sampler, reverse_data_loader, reverse_text_encoder, relation = 'HasProperty')
+def reverse_property(input_event, sampling_algorithm="beam-25"):
+    reverse_sampler = reverse_interactive.set_sampler(
+        reverse_opt, sampling_algorithm, reverse_data_loader
+    )
+    reverse_outputs = reverse_interactive.get_conceptnet_sequence(
+        input_event,
+        reverse_model,
+        reverse_sampler,
+        reverse_data_loader,
+        reverse_text_encoder,
+        relation="HasProperty",
+    )
     return reverse_outputs
 
 
 def N_PN(token):
-    return token.pos_ == 'NOUN' or token.pos_ =='PROPN'
+    return token.pos_ == "NOUN" or token.pos_ == "PROPN"
+
+
 def get_so_idx(doc):
     for token in doc:
-        if token.lemma_ == 'so':
-            return( token.i)
+        if token.lemma_ == "so":
+            return token.i
+
+
 def parse(sentence):
     doc = nlp(sentence)
     adj = []
     so_id = get_so_idx(doc)
-    NN = ''
+    NN = ""
     for token in doc:
         if N_PN(token) and token.i < so_id:
             NN += token.text
-            #NN += ' '
-        elif token.i > so_id and (token.pos_ == 'ADJ' or token.pos_ == 'ADV'):
+            # NN += ' '
+        elif token.i > so_id and (token.pos_ == "ADJ" or token.pos_ == "ADV"):
             adj.append(token.text)
-            NN.strip(' ')
-    if NN == '':
+            NN.strip(" ")
+    if NN == "":
         NN = str(doc[0])
-    return NN, adj, sentence.replace(" so "," ")
+    return NN, adj, sentence.replace(" so ", " ")
 
 
 def get_action(sentence):
     doc = nlp(sentence)
     for token in doc:
-        if token.pos_ =='VERB' and token.text not in ['will', 'can']:
-            return str(doc[token.i:])
-    return ''
+        if token.pos_ == "VERB" and token.text not in ["will", "can"]:
+            return str(doc[token.i :])
+    return ""
 
 
 def get_characteristic(inp):
-    result = getPred(inp, relation=rel_characteristic, prnt = False, sampling_algorithm = 'beam-5')
+    result = getPred(
+        inp, relation=rel_characteristic, prnt=False, sampling_algorithm="beam-5"
+    )
     movements = []
     for rel in rel_characteristic:
         for phrase in result[rel]["beams"]:
             if get_action(phrase):
-                movements.append(get_action(phrase)) 
+                movements.append(get_action(phrase))
     movements = list(set(movements))
-    fit_dict={}
+    fit_dict = {}
     for m in movements:
-            p = getprob(m, subject, relation = 'RelatedTo', prnt = False)
-            fit_dict[m] = p
+        p = getprob(m, subject, relation="RelatedTo", prnt=False)
+        fit_dict[m] = p
     sorted_l = sorted(fit_dict.items(), key=operator.itemgetter(1))
-    num = int(len(sorted_l)*1/2)
+    num = int(len(sorted_l) * 1 / 2)
     good_movements = dict(sorted_l[:num]).keys()
     return good_movements
 
-'''
+
+"""
 # This simile model is an alternative to reverse comet model,
 # That is to say, we provide another way to get objects that share certain property 
 # you may well skip this simile model, as the reverse comet model is sufficien 
@@ -341,27 +366,37 @@ def simile_vehicle(inp):
         return vehicles
 
 simile_vehicle('your drawing is so bright')
-'''
+"""
 
 
 def hasAttribute(A, attribute, B):
-    return min(getprob(A, B, 'RelatedTo'), getprob(B, A, 'RelatedTo'), getprob(B, attribute, 'HasProperty'))
-def CapableOf(B,C):
-    return getprob(B, C, 'CapableOf')
+    return min(
+        getprob(A, B, "RelatedTo"),
+        getprob(B, A, "RelatedTo"),
+        getprob(B, attribute, "HasProperty"),
+    )
 
-def characteristic(B,C):
+
+def CapableOf(B, C):
+    return getprob(B, C, "CapableOf")
+
+
+def characteristic(B, C):
     temp = 999
     for rel in rel_characteristic:
         temp = min(temp, getprob(B, C, rel))
     return temp
 
 
-def causes(A,C):
-    return min(getprob(A, C, causal_relations[0]), getprob(A, C, causal_relations[1]),
-                                                           getprob(A, C, causal_relations[2]))
+def causes(A, C):
+    return min(
+        getprob(A, C, causal_relations[0]),
+        getprob(A, C, causal_relations[1]),
+        getprob(A, C, causal_relations[2]),
+    )
 
 
-def get_characteristic_prob(B,C):
+def get_characteristic_prob(B, C):
     temp = 999
     for rel in rel_characteristic:
         temp = min(temp, getprob(B, C, rel))
@@ -371,17 +406,20 @@ def get_characteristic_prob(B,C):
 def get_score(A, Bs, Cs, gen, all_s2, all_s3, all_s4):
     doc = nlp(A)
     so_id = get_so_idx(doc)
-    attribute = doc[so_id+1:].text
+    attribute = doc[so_id + 1 :].text
     for B, C in zip(Bs, Cs):
         try:
             s2 = hasAttribute(A, attribute, B)
-            full_text = A + ' even ' + B + ' '+ C +'!'
+            full_text = A + " even " + B + " " + C + "!"
             print(full_text)
-            #try:
-            s3 = characteristic(B,C)
-            s4 = min(getprob(A, C, causal_relations[0]), getprob(A, C, causal_relations[1]),
-                                                               getprob(A, C, causal_relations[2]))
-            #print(s2,s3,s4)
+            # try:
+            s3 = characteristic(B, C)
+            s4 = min(
+                getprob(A, C, causal_relations[0]),
+                getprob(A, C, causal_relations[1]),
+                getprob(A, C, causal_relations[2]),
+            )
+            # print(s2,s3,s4)
             gen.append(full_text)
             all_s2.append(s2)
             all_s3.append(s3)

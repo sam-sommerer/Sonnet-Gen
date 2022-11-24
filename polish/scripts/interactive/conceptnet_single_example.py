@@ -13,7 +13,11 @@ import src.interactive.functions as interactive
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--device", type=str, default="cpu")
-    parser.add_argument("--model_file", type=str, default="pretrained_models/conceptnet_pretrained_model.pickle")
+    parser.add_argument(
+        "--model_file",
+        type=str,
+        default="pretrained_models/conceptnet_pretrained_model.pickle",
+    )
     parser.add_argument("--sampling_algorithm", type=str, default="help")
 
     args = parser.parse_args()
@@ -35,26 +39,29 @@ if __name__ == "__main__":
     else:
         cfg.device = "cpu"
 
-
     while True:
         input_event = "help"
         relation = "help"
         sampling_algorithm = args.sampling_algorithm
 
         while input_event is None or input_event.lower() == "help":
-            input_event = input("Give an input entity (e.g., go on a hike -- works best if words are lemmatized): ")
+            input_event = input(
+                "Give an input entity (e.g., go on a hike -- works best if words are lemmatized): "
+            )
 
             if input_event == "help":
                 interactive.print_help(opt.dataset)
 
         while relation.lower() == "help":
-            relation = input("Give a relation (type \"help\" for an explanation): ")
+            relation = input('Give a relation (type "help" for an explanation): ')
 
             if relation == "help":
                 interactive.print_relation_help(opt.dataset)
 
         while sampling_algorithm.lower() == "help":
-            sampling_algorithm = input("Give a sampling algorithm (type \"help\" for an explanation): ")
+            sampling_algorithm = input(
+                'Give a sampling algorithm (type "help" for an explanation): '
+            )
 
             if sampling_algorithm == "help":
                 interactive.print_sampling_help()
@@ -65,5 +72,5 @@ if __name__ == "__main__":
             relation = "all"
 
         outputs = interactive.get_conceptnet_sequence(
-            input_event, model, sampler, data_loader, text_encoder, relation)
-
+            input_event, model, sampler, data_loader, text_encoder, relation
+        )

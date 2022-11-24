@@ -51,7 +51,8 @@ save_path = "data/atomic/processed/{}".format(opt.exp)
 utils.mkpath(save_path)
 
 save_name = os.path.join(
-    save_path, "{}.pickle".format(utils.make_name_string(opt.data)))
+    save_path, "{}.pickle".format(utils.make_name_string(opt.data))
+)
 
 data_loader = data.make_data_loader(opt, categories)
 data_loader.load_data("data/atomic/")
@@ -66,7 +67,8 @@ opt.data.maxe2 = data_loader.max_effect
 opt.data.maxr = 1
 
 save_name = os.path.join(
-    save_path, "{}.pickle".format(utils.make_name_string(opt.data)))
+    save_path, "{}.pickle".format(utils.make_name_string(opt.data))
+)
 
 print("Data Loader will be saved at: {}".format(save_name))
 

@@ -337,7 +337,9 @@ class Trainer(object):
         # gather logging outputs from all replicas
         if self._sync_stats():
             logging_outputs, sample_size, ooms = self._aggregate_logging_outputs(
-                logging_outputs, sample_size, ooms,
+                logging_outputs,
+                sample_size,
+                ooms,
             )
 
         metrics.log_scalar("oom", ooms, len(samples), priority=600, round=3)
@@ -353,7 +355,9 @@ class Trainer(object):
                     # multiply gradients by (# GPUs / sample_size) since DDP
                     # already normalizes by the number of GPUs. Thus we get
                     # (sum_of_gradients / sample_size).
-                    self.optimizer.multiply_grads(self.args.distributed_world_size / sample_size)
+                    self.optimizer.multiply_grads(
+                        self.args.distributed_world_size / sample_size
+                    )
                 else:
                     self.optimizer.multiply_grads(1 / sample_size)
 
@@ -373,7 +377,7 @@ class Trainer(object):
 
             # log stats
             logging_output = self._reduce_and_log_stats(logging_outputs, sample_size)
-            metrics.log_speed("ups", 1., priority=100, round=2)
+            metrics.log_speed("ups", 1.0, priority=100, round=2)
             metrics.log_scalar("gnorm", utils.item(grad_norm), priority=400, round=3)
             metrics.log_scalar(
                 "clip",
@@ -388,7 +392,8 @@ class Trainer(object):
                 and (
                     (self.get_num_updates() + self.args.empty_cache_freq - 1)
                     % self.args.empty_cache_freq
-                ) == 0
+                )
+                == 0
                 and torch.cuda.is_available()
                 and not self.args.cpu
             ):
@@ -404,7 +409,9 @@ class Trainer(object):
             raise e
 
         if self.args.fp16:
-            metrics.log_scalar("loss_scale", self.optimizer.scaler.loss_scale, priority=700, round=0)
+            metrics.log_scalar(
+                "loss_scale", self.optimizer.scaler.loss_scale, priority=700, round=0
+            )
 
         self.clear_buffered_stats()
         metrics.log_stop_time("train_wall")
@@ -508,10 +515,10 @@ class Trainer(object):
         """[deprecated] Get a specific meter by name."""
         from fairseq import meters
 
-        if 'get_meter' not in self._warn_once:
-            self._warn_once.add('get_meter')
+        if "get_meter" not in self._warn_once:
+            self._warn_once.add("get_meter")
             utils.deprecation_warning(
-                'Trainer.get_meter is deprecated. Please use fairseq.metrics instead.'
+                "Trainer.get_meter is deprecated. Please use fairseq.metrics instead."
             )
 
         train_meters = metrics.get_meters("train")
@@ -536,7 +543,7 @@ class Trainer(object):
         elif name in {"valid_loss", "valid_nll_loss"}:
             # support for legacy train.py, which assumed these meters
             # are always initialized
-            k = name[len("valid_"):]
+            k = name[len("valid_") :]
             m = metrics.get_meter("valid", k)
             return m or meters.AverageMeter()
         elif name in train_meters:
@@ -603,9 +610,7 @@ class Trainer(object):
         sys.stderr.flush()
 
     def _aggregate_logging_outputs(
-        self,
-        logging_outputs: List[Dict[str, Any]],
-        *extra_stats_to_sum
+        self, logging_outputs: List[Dict[str, Any]], *extra_stats_to_sum
     ):
         if self.get_criterion().__class__.logging_outputs_can_be_summed():
             return self._fast_stat_sync_sum(logging_outputs, *extra_stats_to_sum)
@@ -613,20 +618,20 @@ class Trainer(object):
             return self._all_gather_list_sync(logging_outputs, *extra_stats_to_sum)
 
     def _all_gather_list_sync(
-        self,
-        logging_outputs: List[Dict[str, Any]],
-        *extra_stats_to_sum
+        self, logging_outputs: List[Dict[str, Any]], *extra_stats_to_sum
     ):
         """
         Sync logging outputs across workers. all_gather_list_sync is
         suitable when logging outputs are complex types.
         """
-        results = list(zip(
-            *distributed_utils.all_gather_list(
-                [logging_outputs] + list(extra_stats_to_sum),
-                max_size=getattr(self.args, 'all_gather_list_size', 16384),
+        results = list(
+            zip(
+                *distributed_utils.all_gather_list(
+                    [logging_outputs] + list(extra_stats_to_sum),
+                    max_size=getattr(self.args, "all_gather_list_size", 16384),
+                )
             )
-        ))
+        )
         logging_outputs, extra_stats_to_sum = results[0], results[1:]
         logging_outputs = list(chain.from_iterable(logging_outputs))
         extra_stats_to_sum = [sum(s) for s in extra_stats_to_sum]
@@ -646,15 +651,16 @@ class Trainer(object):
         num_extra = len(extra_stats_to_sum)
         if len(logging_outputs) > 0:
             sorted_keys = sorted(logging_outputs[0].keys())
-            stats = [0.] + list(extra_stats_to_sum) + [
-                sum(log.get(k, 0) for log in logging_outputs)
-                for k in sorted_keys
-            ]
-            stats = stats + [0.]*(min_buffer_size - len(stats))
+            stats = (
+                [0.0]
+                + list(extra_stats_to_sum)
+                + [sum(log.get(k, 0) for log in logging_outputs) for k in sorted_keys]
+            )
+            stats = stats + [0.0] * (min_buffer_size - len(stats))
             buf = torch.cuda.DoubleTensor(stats)
         else:
-            buf = torch.zeros(min_buffer_size, dtype=torch.double, device='cuda')
-            buf[0] = 1.  # flag to indicate we should fallback to _all_gather_list_sync
+            buf = torch.zeros(min_buffer_size, dtype=torch.double, device="cuda")
+            buf[0] = 1.0  # flag to indicate we should fallback to _all_gather_list_sync
 
         # stats buffer is organized like:
         # 0: flag to indicate whether fast-stat-sync should be disabled
@@ -665,11 +671,11 @@ class Trainer(object):
 
         buf = buf.tolist()
         fallback = buf[0]
-        if fallback > 0.:
+        if fallback > 0.0:
             # fallback to _all_gather_list_sync
             return self._all_gather_list_sync(logging_outputs, *extra_stats_to_sum)
         else:
-            extra_stats_to_sum, stats = buf[1:num_extra + 1], buf[num_extra + 1:]
+            extra_stats_to_sum, stats = buf[1 : num_extra + 1], buf[num_extra + 1 :]
             stats = [{k: stats[i] for i, k in enumerate(sorted_keys)}]
             return [stats] + extra_stats_to_sum
 
@@ -690,8 +696,7 @@ class Trainer(object):
             # convert logging_outputs to CPU to avoid unnecessary
             # device-to-host transfers in reduce_metrics
             logging_outputs = utils.apply_to_sample(
-                lambda t: t.to(device='cpu', non_blocking=True),
-                logging_outputs
+                lambda t: t.to(device="cpu", non_blocking=True), logging_outputs
             )
 
             self.task.reduce_metrics(logging_outputs, self.get_criterion())

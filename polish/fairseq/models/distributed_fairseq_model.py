@@ -26,7 +26,7 @@ def DistributedFairseqModel(args, model):
     """
     # determine which DDP class to extend
     assert isinstance(model, nn.Module)
-    if args.ddp_backend == 'c10d':
+    if args.ddp_backend == "c10d":
         ddp_class = nn.parallel.DistributedDataParallel
         init_kwargs = dict(
             module=model,
@@ -36,11 +36,11 @@ def DistributedFairseqModel(args, model):
             bucket_cap_mb=args.bucket_cap_mb,
         )
         # Maintain backward compatibility
-        if 'check_reduction' in inspect.getargspec(ddp_class)[0]:
-            init_kwargs['check_reduction'] = True
-        if 'find_unused_parameters' in inspect.getargspec(ddp_class)[0]:
-            init_kwargs['find_unused_parameters'] = args.find_unused_parameters
-    elif args.ddp_backend == 'no_c10d':
+        if "check_reduction" in inspect.getargspec(ddp_class)[0]:
+            init_kwargs["check_reduction"] = True
+        if "find_unused_parameters" in inspect.getargspec(ddp_class)[0]:
+            init_kwargs["find_unused_parameters"] = args.find_unused_parameters
+    elif args.ddp_backend == "no_c10d":
         ddp_class = LegacyDistributedDataParallel
         init_kwargs = dict(
             module=model,
@@ -48,7 +48,7 @@ def DistributedFairseqModel(args, model):
             buffer_size=2**28,
         )
     else:
-        raise ValueError('Unknown --ddp-backend: ' + args.ddp_backend)
+        raise ValueError("Unknown --ddp-backend: " + args.ddp_backend)
 
     class _DistributedFairseqModel(ddp_class):
         """Extend DistributedDataParallel to check for missing
@@ -58,7 +58,7 @@ def DistributedFairseqModel(args, model):
             super().__init__(*args, **kwargs)
 
         def __getattr__(self, name):
-            wrapped_module = super().__getattr__('module')
+            wrapped_module = super().__getattr__("module")
             if hasattr(wrapped_module, name):
                 return getattr(wrapped_module, name)
             return super().__getattr__(name)

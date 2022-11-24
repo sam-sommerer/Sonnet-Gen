@@ -87,22 +87,24 @@ class GenerationDataLoader(DataLoader):
             file_name = "v4_atomic_{}.csv".format(map_name(split))
 
             df = pandas.read_csv("{}/{}".format(path, file_name), index_col=0)
-            df.iloc[:, :9] = df.iloc[:, :9].apply(
-                lambda col: col.apply(json.loads))
+            df.iloc[:, :9] = df.iloc[:, :9].apply(lambda col: col.apply(json.loads))
 
             for cat in self.categories:
                 attr = df[cat]
-                self.data[split]["total"] += utils.zipped_flatten(zip(
-                    attr.index, ["<{}>".format(cat)] * len(attr), attr.values))
+                self.data[split]["total"] += utils.zipped_flatten(
+                    zip(attr.index, ["<{}>".format(cat)] * len(attr), attr.values)
+                )
 
         if do_take_partial_dataset(self.opt.data):
             self.data["train"]["total"] = select_partial_dataset(
-                self.opt.data, self.data["train"]["total"])
+                self.opt.data, self.data["train"]["total"]
+            )
 
         return False
 
-    def make_tensors(self, text_encoder, special,
-                     splits=["train", "dev", "test"], test=False):
+    def make_tensors(
+        self, text_encoder, special, splits=["train", "dev", "test"], test=False
+    ):
         self.vocab_encoder = text_encoder.encoder
         self.vocab_decoder = text_encoder.decoder
         self.special_chars = special
@@ -110,15 +112,19 @@ class GenerationDataLoader(DataLoader):
         sequences = {}
         for split in splits:
             sequences[split] = get_generation_sequences(
-                self.opt, self.data, split, text_encoder, test)
+                self.opt, self.data, split, text_encoder, test
+            )
 
-            self.masks[split]["total"] = [(len(i[0]), len(i[1])) for
-                                          i in sequences[split]]
+            self.masks[split]["total"] = [
+                (len(i[0]), len(i[1])) for i in sequences[split]
+            ]
 
-        self.max_event = max([max([l[0] for l in self.masks[split]["total"]])
-                              for split in self.masks])
-        self.max_effect = max([max([l[1] for l in self.masks[split]["total"]])
-                               for split in self.masks])
+        self.max_event = max(
+            [max([l[0] for l in self.masks[split]["total"]]) for split in self.masks]
+        )
+        self.max_effect = max(
+            [max([l[1] for l in self.masks[split]["total"]]) for split in self.masks]
+        )
 
         print(self.max_event)
         print(self.max_effect)
@@ -126,15 +132,18 @@ class GenerationDataLoader(DataLoader):
         for split in splits:
             num_elements = len(sequences[split])
             self.sequences[split]["total"] = torch.LongTensor(
-                num_elements, self.max_event + self.max_effect).fill_(0)
+                num_elements, self.max_event + self.max_effect
+            ).fill_(0)
 
             for i, seq in enumerate(sequences[split]):
                 # print(self.sequences[split]["total"][i, :len(seq[0])].size())
                 # print(torch.FloatTensor(seq[0]).size())
-                self.sequences[split]["total"][i, :len(seq[0])] = \
-                    torch.LongTensor(seq[0])
-                self.sequences[split]["total"][i, self.max_event:self.max_event + len(seq[1])] = \
-                    torch.LongTensor(seq[1])
+                self.sequences[split]["total"][i, : len(seq[0])] = torch.LongTensor(
+                    seq[0]
+                )
+                self.sequences[split]["total"][
+                    i, self.max_event : self.max_event + len(seq[1])
+                ] = torch.LongTensor(seq[1])
 
     def sample_batch(self, split, bs, idxs=None):
         offset = self.offsets[split]["total"]
@@ -147,14 +156,13 @@ class GenerationDataLoader(DataLoader):
 
         if idxs:
             seqs = self.sequences[split]["total"].index_select(
-                0, torch.LongTensor(idxs).to(
-                    self.sequences[split]["total"].device))
+                0, torch.LongTensor(idxs).to(self.sequences[split]["total"].device)
+            )
         else:
-            seqs = self.sequences[split]["total"][offset:offset + bs]
+            seqs = self.sequences[split]["total"][offset : offset + bs]
         batch["sequences"] = seqs.to(cfg.device)
         batch["attention_mask"] = make_attention_mask(seqs)
-        batch["loss_mask"] = make_loss_mask(
-            seqs, self.max_event, 1)
+        batch["loss_mask"] = make_loss_mask(seqs, self.max_event, 1)
         batch["key"] = ("total", offset, offset + bs)
 
         offset += seqs.size(0)
@@ -168,8 +176,7 @@ class GenerationDataLoader(DataLoader):
         else:
             return batch, False
 
-    def reset_offsets(self, splits=["train", "test", "dev"],
-                      shuffle=True, keys=None):
+    def reset_offsets(self, splits=["train", "test", "dev"], shuffle=True, keys=None):
         if isinstance(splits, str):
             splits = [splits]
 
@@ -194,9 +201,9 @@ class GenerationDataLoader(DataLoader):
 
             random.shuffle(idxs)
 
-            self.sequences[split][key] = \
-                self.sequences[split][key].index_select(
-                    0, torch.LongTensor(idxs))
+            self.sequences[split][key] = self.sequences[split][key].index_select(
+                0, torch.LongTensor(idxs)
+            )
 
             temp = [self.data[split][key][i] for i in idxs]
             self.data[split][key] = temp
@@ -210,13 +217,15 @@ def prune_data_for_evaluation(data_loader, categories, split):
         if example[1] in categories:
             indices.append(i)
 
-    data_loader.masks[split]["total"] = [data_loader.masks[split]["total"][i]
-                                         for i in indices]
-    data_loader.sequences[split]["total"] = \
-        data_loader.sequences[split]["total"].index_select(
-            0, torch.LongTensor(indices))
-    data_loader.data[split]["total"] = [data_loader.data[split]["total"][i]
-                                        for i in indices]
+    data_loader.masks[split]["total"] = [
+        data_loader.masks[split]["total"][i] for i in indices
+    ]
+    data_loader.sequences[split]["total"] = data_loader.sequences[split][
+        "total"
+    ].index_select(0, torch.LongTensor(indices))
+    data_loader.data[split]["total"] = [
+        data_loader.data[split]["total"][i] for i in indices
+    ]
 
 
 def make_attention_mask(sequences):
@@ -227,7 +236,7 @@ def make_loss_mask(sequences, max_event, num_delim_tokens):
     # print(num_delim_tokens)
     # print(sequences.size())
     mask = (sequences != 0).float()
-    mask[:, :max_event + num_delim_tokens] = 0
+    mask[:, : max_event + num_delim_tokens] = 0
     return mask[:, 1:].to(cfg.device)
 
 
@@ -252,7 +261,7 @@ def handle_underscores(suffix, text_encoder, prefix=False):
         if part:
             to_flatten.append(text_encoder.encode([part], verbose=False)[0])
 
-            if i != len(suffix_parts) - 1 and suffix_parts[i+1]:
+            if i != len(suffix_parts) - 1 and suffix_parts[i + 1]:
                 to_flatten.append([encoder["<blank>"]])
         else:
             to_flatten.append([encoder["<blank>"]])
@@ -271,7 +280,8 @@ def get_generation_sequences(opt, data, split, text_encoder, test):
 
     for prefix, category, suffix in tqdm(data[split]["total"]):
         final_prefix, final_suffix = do_example(
-            text_encoder, prefix, suffix, True, True)
+            text_encoder, prefix, suffix, True, True
+        )
         # if do_prefix:
         #     if "___" in prefix:
         #         final_prefix = handle_underscores(prefix, text_encoder, True)
@@ -284,7 +294,8 @@ def get_generation_sequences(opt, data, split, text_encoder, test):
         #         final_suffix = text_encoder.encode([suffix], verbose=False)[0]
 
         final = compile_final_sequence(
-            opt, final_prefix, final_suffix, category, text_encoder)
+            opt, final_prefix, final_suffix, category, text_encoder
+        )
 
         sequences.append(final)
 
@@ -294,7 +305,6 @@ def get_generation_sequences(opt, data, split, text_encoder, test):
             break
 
     return sequences
-
 
 
 def do_example(text_encoder, prefix, suffix, do_prefix, do_suffix):
@@ -319,9 +329,7 @@ def compile_final_sequence(opt, final_prefix, final_suffix, category, text_encod
     final = []
 
     final.append(final_prefix)
-    final.append(
-        [text_encoder.encoder[category]]
-        + final_suffix)
+    final.append([text_encoder.encoder[category]] + final_suffix)
 
     final[-1].append(text_encoder.encoder["<END>"])
 
@@ -333,5 +341,5 @@ num_delimiter_tokens = {
     "hierarchy": 3,
     "hierarchy+label": 4,
     "category+hierarchy": 4,
-    "category+hierarchy+label": 5
+    "category+hierarchy+label": 5,
 }

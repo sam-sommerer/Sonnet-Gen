@@ -13,7 +13,7 @@ from fairseq import utils1 as utils
 from fairseq.criterions import FairseqCriterion, register_criterion
 
 
-@register_criterion('masked_lm')
+@register_criterion("masked_lm")
 class MaskedLmLoss(FairseqCriterion):
     """
     Implementation for the loss used in masked language model (MLM) training.
@@ -28,7 +28,7 @@ class MaskedLmLoss(FairseqCriterion):
         3) logging outputs to display while training
         """
         # compute MLM loss
-        masked_tokens = sample['target'].ne(self.padding_idx)
+        masked_tokens = sample["target"].ne(self.padding_idx)
         sample_size = masked_tokens.int().sum().item()
 
         # (Rare case) When all tokens are masked, the model results in empty
@@ -36,7 +36,7 @@ class MaskedLmLoss(FairseqCriterion):
         if sample_size == 0:
             masked_tokens = None
 
-        logits = model(**sample['net_input'], masked_tokens=masked_tokens)[0]
+        logits = model(**sample["net_input"], masked_tokens=masked_tokens)[0]
         targets = model.get_targets(sample, [logits])
 
         if sample_size != 0:
@@ -49,25 +49,27 @@ class MaskedLmLoss(FairseqCriterion):
                 dtype=torch.float32,
             ),
             targets.view(-1),
-            reduction='sum',
+            reduction="sum",
             ignore_index=self.padding_idx,
         )
         logging_output = {
-            'loss': utils.item(loss.data) if reduce else loss.data,
-            'ntokens': sample['ntokens'],
-            'nsentences': sample['nsentences'],
-            'sample_size': sample_size,
+            "loss": utils.item(loss.data) if reduce else loss.data,
+            "ntokens": sample["ntokens"],
+            "nsentences": sample["nsentences"],
+            "sample_size": sample_size,
         }
         return loss, sample_size, logging_output
 
     @staticmethod
     def reduce_metrics(logging_outputs) -> None:
         """Aggregate logging outputs from data parallel training."""
-        loss_sum = sum(log.get('loss', 0) for log in logging_outputs)
-        sample_size = sum(log.get('sample_size', 0) for log in logging_outputs)
+        loss_sum = sum(log.get("loss", 0) for log in logging_outputs)
+        sample_size = sum(log.get("sample_size", 0) for log in logging_outputs)
 
-        metrics.log_scalar('loss', loss_sum / sample_size / math.log(2), sample_size, round=3)
-        metrics.log_derived('ppl', lambda meters: round(2**meters['loss'].avg, 3))
+        metrics.log_scalar(
+            "loss", loss_sum / sample_size / math.log(2), sample_size, round=3
+        )
+        metrics.log_derived("ppl", lambda meters: round(2 ** meters["loss"].avg, 3))
 
     @staticmethod
     def logging_outputs_can_be_summed() -> bool:

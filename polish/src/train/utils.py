@@ -7,10 +7,8 @@ import copy
 
 def update_generation_losses(losses, nums, micro, macro, bs, length, loss):
     # Update Losses
-    losses[micro] += \
-        [copy.deepcopy(losses[micro][-1])]
-    losses[macro] += \
-        [copy.deepcopy(losses[macro][-1])]
+    losses[micro] += [copy.deepcopy(losses[micro][-1])]
+    losses[macro] += [copy.deepcopy(losses[macro][-1])]
 
     losses[micro][-1] *= nums[micro]
     losses[macro][-1] *= nums[macro]
@@ -18,16 +16,13 @@ def update_generation_losses(losses, nums, micro, macro, bs, length, loss):
     nums[macro] += bs
 
     if isinstance(length, int):
-        update_indiv_generation_losses(
-            losses, nums, micro, macro, bs, length, loss)
+        update_indiv_generation_losses(losses, nums, micro, macro, bs, length, loss)
     else:
-        update_tensor_generation_losses(
-            losses, nums, micro, macro, bs, length, loss)
+        update_tensor_generation_losses(losses, nums, micro, macro, bs, length, loss)
 
 
-def update_indiv_generation_losses(losses, nums, micro,
-                                   macro, bs, length, loss):
-    nums[micro] += (bs * length)
+def update_indiv_generation_losses(losses, nums, micro, macro, bs, length, loss):
+    nums[micro] += bs * length
 
     batch_loss = loss * bs
 
@@ -37,8 +32,7 @@ def update_indiv_generation_losses(losses, nums, micro,
     losses[macro][-1] /= nums[macro]
 
 
-def update_tensor_generation_losses(losses, nums, micro,
-                                    macro, bs, length, loss):
+def update_tensor_generation_losses(losses, nums, micro, macro, bs, length, loss):
     nums[micro] += length.sum().item()
 
     losses[micro][-1] += loss.sum().item()

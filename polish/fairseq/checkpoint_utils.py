@@ -53,8 +53,9 @@ def save_checkpoint(args, trainer, epoch_itr, val_loss):
         not hasattr(save_checkpoint, "best")
         or is_better(val_loss, save_checkpoint.best)
     )
-    checkpoint_conds["checkpoint.best_{}_{:.2f}.pt".format(
-        args.best_checkpoint_metric, val_loss)] = (
+    checkpoint_conds[
+        "checkpoint.best_{}_{:.2f}.pt".format(args.best_checkpoint_metric, val_loss)
+    ] = (
         val_loss is not None
         and args.keep_best_checkpoints > 0
         and (
@@ -102,12 +103,17 @@ def save_checkpoint(args, trainer, epoch_itr, val_loss):
     if args.keep_best_checkpoints > 0:
         # only keep the best N checkpoints according to validation metric
         checkpoints = checkpoint_paths(
-            args.save_dir, pattern=r"checkpoint\.best_{}_(\d+\.?\d*)\.pt".format(args.best_checkpoint_metric))
+            args.save_dir,
+            pattern=r"checkpoint\.best_{}_(\d+\.?\d*)\.pt".format(
+                args.best_checkpoint_metric
+            ),
+        )
         if not args.maximize_best_checkpoint_metric:
             checkpoints = checkpoints[::-1]
-        for old_chk in checkpoints[args.keep_best_checkpoints:]:
+        for old_chk in checkpoints[args.keep_best_checkpoints :]:
             if os.path.lexists(old_chk):
                 os.remove(old_chk)
+
 
 def load_checkpoint(args, trainer, **passthrough_args):
     """

@@ -36,7 +36,7 @@ class Trainer(object):
         self.batch_variables = {
             "data": self.data_loader,
             "model": self.model,
-            "split": "train"
+            "split": "train",
         }
 
         self.do_gen = cfg.do_gen
@@ -56,30 +56,38 @@ class Trainer(object):
     def save_model(self, tracked_score):
         lrs = {}
         for i, param_group in enumerate(self.optimizer.param_groups):
-            lrs[i] = param_group['lr']
+            lrs[i] = param_group["lr"]
         self.lrs[self.opt.train.dynamic.epoch] = lrs
 
         to_save = self.decide_to_save()
 
         if to_save:
             data.save_step(
-                self.model, self.data_loader.vocab_encoder,
-                self.optimizer, self.opt,
-                self.opt.train.dynamic.epoch, self.lrs)
+                self.model,
+                self.data_loader.vocab_encoder,
+                self.optimizer,
+                self.opt,
+                self.opt.train.dynamic.epoch,
+                self.lrs,
+            )
 
     def log_losses(self, opt, losses):
         if (not cfg.toy and cfg.save) or cfg.test_save:
             data.save_eval_file(opt, losses["train"], "losses", split="train")
-            data.save_eval_file(opt, losses['dev'], "losses", split="dev")
-            data.save_eval_file(opt, losses['test'], "losses", split="test")
+            data.save_eval_file(opt, losses["dev"], "losses", split="dev")
+            data.save_eval_file(opt, losses["test"], "losses", split="test")
 
     def set_logger(self):
         if cfg.toy:
-            self.logger = SummaryWriter(utils.make_name(
-                self.opt, prefix="garbage/logs/", eval_=True, do_epoch=False))
+            self.logger = SummaryWriter(
+                utils.make_name(
+                    self.opt, prefix="garbage/logs/", eval_=True, do_epoch=False
+                )
+            )
         else:
-            self.logger = SummaryWriter(utils.make_name(
-                self.opt, prefix="logs/", eval_=True, do_epoch=False))
+            self.logger = SummaryWriter(
+                utils.make_name(self.opt, prefix="logs/", eval_=True, do_epoch=False)
+            )
         print("Logging Tensorboard Files at: {}".format(self.logger.logdir))
 
     def stop_logger(self):
@@ -99,8 +107,7 @@ class Trainer(object):
         nums = self.reset_losses()
 
         # Initialize progress bar
-        bar = utils.initialize_progress_bar(
-            self.data_loader.sequences["train"])
+        bar = utils.initialize_progress_bar(self.data_loader.sequences["train"])
 
         reset = False
 
@@ -116,7 +123,8 @@ class Trainer(object):
                 self.logger.add_scalar(
                     "train/{}".format(loss_name),
                     loss.item() / self.opt.train.dynamic.bs,
-                    self.count)
+                    self.count,
+                )
 
             if cfg.toy and self.counter(nums) > 300:
                 break
@@ -133,30 +141,36 @@ class Trainer(object):
     def run_evaluation_cycle(self):
         for split in ["dev", "test"]:
             self.evaluator.validate(
-                self.opt.train.dynamic.epoch, split,
-                self.losses[split])
+                self.opt.train.dynamic.epoch, split, self.losses[split]
+            )
 
             if self.do_gen:
                 gen.do_gen_run(
-                    self.opt, self.generator, self.opt.train.dynamic.epoch,
-                    split, self.losses[split])
+                    self.opt,
+                    self.generator,
+                    self.opt.train.dynamic.epoch,
+                    split,
+                    self.losses[split],
+                )
             iter_num = self.opt.train.dynamic.epoch
 
             for loss_name in self.losses[split]:
                 self.logger.add_scalar(
                     "{}/{}".format(split, loss_name),
                     self.losses[split][loss_name][iter_num],
-                    iter_num)
+                    iter_num,
+                )
 
     def clip_gradients(self):
         if self.opt.train.static.clip:
             torch.nn.utils.clip_grad_norm_(
-                self.model.parameters(), self.opt.train.static.clip)
+                self.model.parameters(), self.opt.train.static.clip
+            )
 
     def do_forward_pass(self, nums):
         token_loss, nums, reset = self.batch(
-            self.opt, nums, self.losses["train"],
-            self.batch_variables)
+            self.opt, nums, self.losses["train"], self.batch_variables
+        )
         return token_loss, nums, reset
 
     def do_backward_pass(self, loss):
@@ -164,20 +178,20 @@ class Trainer(object):
 
     def update_parameters(self):
         if self.opt.model == "lstm":
-                self.clip_gradients()
+            self.clip_gradients()
         self.optimizer.step()
         self.optimizer.zero_grad()
 
     def reset_losses(self):
-        loss_names = set([i.rstrip("maicro").rstrip("_") for
-                          i in self.losses["train"].keys()])
+        loss_names = set(
+            [i.rstrip("maicro").rstrip("_") for i in self.losses["train"].keys()]
+        )
         return self.initialize_losses(list(loss_names))
 
 
 class IteratorTrainer(Trainer):
     def __init__(self, opt, meta, data_loader, model, optimizer):
-        super(IteratorTrainer, self).__init__(
-            opt, meta, data_loader, model, optimizer)
+        super(IteratorTrainer, self).__init__(opt, meta, data_loader, model, optimizer)
 
         self.iters = meta.cycle
         self.total_iters = meta.iterations
@@ -221,7 +235,8 @@ class IteratorTrainer(Trainer):
                 self.logger.add_scalar(
                     "train/{}".format(loss_name),
                     loss.item() / self.opt.train.dynamic.bs,
-                    self.opt.train.dynamic.epoch)
+                    self.opt.train.dynamic.epoch,
+                )
 
             bar.update(1)
 
@@ -230,4 +245,3 @@ class IteratorTrainer(Trainer):
 
             if reset:
                 self.data_loader.reset_offsets("train")
-

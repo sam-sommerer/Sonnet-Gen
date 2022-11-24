@@ -3,6 +3,7 @@ import random
 import src.train.train as base_train
 import src.train.batch as batch
 import src.evaluate.atomic_evaluate as evaluate
+
 # import src.evaluate.atomic_generate as gen
 
 
@@ -17,8 +18,7 @@ class AtomicGenerationIteratorTrainer(base_train.IteratorTrainer):
         self.initialize_losses(opt.data.get("categories", []))
 
     def set_evaluator(self, opt, model, data_loader):
-        self.evaluator = evaluate.make_evaluator(
-            opt, model, data_loader)
+        self.evaluator = evaluate.make_evaluator(opt, model, data_loader)
 
     # def set_generator(self, opt, model, data_loader, scores, reward=None):
     #     self.generator = gen.make_generator(
@@ -27,7 +27,8 @@ class AtomicGenerationIteratorTrainer(base_train.IteratorTrainer):
     def set_sampler(self, opt):
         if opt.train.static.samp not in self.samplers:
             self.samplers[opt.train.static.samp] = sampling.make_sampler(
-                opt.train.static.samp, opt, self.data_loader, batch_mode=True)
+                opt.train.static.samp, opt, self.data_loader, batch_mode=True
+            )
         self.batch_variables["sampler"] = self.samplers
 
     def batch(self, opt, *args):
@@ -40,10 +41,7 @@ class AtomicGenerationIteratorTrainer(base_train.IteratorTrainer):
         return token_loss, nums, reset
 
     def initialize_losses(self, categories):
-        self.losses["train"] = {
-            "total_micro": [0],
-            "total_macro": [0]
-        }
+        self.losses["train"] = {"total_micro": [0], "total_macro": [0]}
 
         nums = {"total_micro": 0, "total_macro": 0}
 
@@ -62,11 +60,9 @@ class AtomicGenerationIteratorTrainer(base_train.IteratorTrainer):
     def update_top_score(self, opt):
         print(self.top_score)
         if self.top_score is None:
-            self.top_score = (self.opt.train.dynamic.epoch,
-                              self.get_tracked_score())
+            self.top_score = (self.opt.train.dynamic.epoch, self.get_tracked_score())
         elif self.get_tracked_score() < self.top_score[-1]:
-            self.top_score = (self.opt.train.dynamic.epoch,
-                              self.get_tracked_score())
+            self.top_score = (self.opt.train.dynamic.epoch, self.get_tracked_score())
         print(self.top_score)
 
     def get_tracked_score(self):

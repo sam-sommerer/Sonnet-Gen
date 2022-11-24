@@ -8,7 +8,7 @@ import math
 from . import FairseqLRScheduler, register_lr_scheduler
 
 
-@register_lr_scheduler('triangular')
+@register_lr_scheduler("triangular")
 class TriangularSchedule(FairseqLRScheduler):
     """Assign LR based on a triangular cyclical schedule.
 
@@ -19,13 +19,13 @@ class TriangularSchedule(FairseqLRScheduler):
         super().__init__(args, optimizer)
         if len(args.lr) > 1:
             raise ValueError(
-                'Cannot use a fixed learning rate schedule with triangular.'
-                ' Consider --lr-scheduler=fixed instead.'
+                "Cannot use a fixed learning rate schedule with triangular."
+                " Consider --lr-scheduler=fixed instead."
             )
 
         lr = args.lr[0]
 
-        assert args.max_lr > lr, 'max_lr must be more than lr'
+        assert args.max_lr > lr, "max_lr must be more than lr"
         self.min_lr = lr
         self.max_lr = args.max_lr
         self.stepsize = args.lr_period_updates // 2
@@ -60,7 +60,7 @@ class TriangularSchedule(FairseqLRScheduler):
         """Update the learning rate after each update."""
         cycle = math.floor(num_updates / (2 * self.stepsize))
 
-        lr_shrink = self.lr_shrink ** cycle
+        lr_shrink = self.lr_shrink**cycle
         max_lr = self.max_lr * lr_shrink
         if self.shrink_min:
             min_lr = self.min_lr * lr_shrink

@@ -12,12 +12,13 @@ from fairseq import utils1 as utils
 
 
 class FairseqCriterion(_Loss):
-
     def __init__(self, args, task):
         super().__init__()
         self.args = args
         self.task = task
-        self.padding_idx = task.target_dictionary.pad() if task.target_dictionary is not None else -100
+        self.padding_idx = (
+            task.target_dictionary.pad() if task.target_dictionary is not None else -100
+        )
 
     @staticmethod
     def add_args(parser):
@@ -44,8 +45,8 @@ class FairseqCriterion(_Loss):
     ) -> Dict[str, Any]:
         """Aggregate logging outputs from data parallel training."""
         utils.deprecation_warning(
-            'The aggregate_logging_outputs API is deprecated. '
-            'Please use the reduce_metrics API instead.'
+            "The aggregate_logging_outputs API is deprecated. "
+            "Please use the reduce_metrics API instead."
         )
         raise NotImplementedError
 
@@ -53,12 +54,12 @@ class FairseqCriterion(_Loss):
     def reduce_metrics(cls, logging_outputs: List[Dict[str, Any]]) -> None:
         """Aggregate logging outputs from data parallel training."""
         utils.deprecation_warning(
-            'Criterions should implement the reduce_metrics API. '
-            'Falling back to deprecated aggregate_logging_outputs API.'
+            "Criterions should implement the reduce_metrics API. "
+            "Falling back to deprecated aggregate_logging_outputs API."
         )
         agg_logging_outputs = cls.aggregate_logging_outputs(logging_outputs)
         for k, v in agg_logging_outputs.items():
-            if k in {'nsentences', 'ntokens', 'sample_size'}:
+            if k in {"nsentences", "ntokens", "sample_size"}:
                 continue
             metrics.log_scalar(k, v)
 

@@ -38,14 +38,40 @@ opt.data.maxe1 = 10
 opt.data.maxe2 = 15
 
 relations = [
-    'AtLocation', 'CapableOf', 'Causes', 'CausesDesire', 'CreatedBy',
-    'DefinedAs', 'DesireOf', 'Desires', 'HasA', 'HasFirstSubevent',
-    'HasLastSubevent', 'HasPainCharacter', 'HasPainIntensity',
-    'HasPrerequisite', 'HasProperty', 'HasSubevent', 'InheritsFrom',
-    'InstanceOf', 'IsA', 'LocatedNear', 'LocationOfAction', 'MadeOf',
-    'MotivatedByGoal', 'NotCapableOf', 'NotDesires', 'NotHasA',
-    'NotHasProperty', 'NotIsA', 'NotMadeOf', 'PartOf', 'ReceivesAction',
-    'RelatedTo', 'SymbolOf', 'UsedFor'
+    "AtLocation",
+    "CapableOf",
+    "Causes",
+    "CausesDesire",
+    "CreatedBy",
+    "DefinedAs",
+    "DesireOf",
+    "Desires",
+    "HasA",
+    "HasFirstSubevent",
+    "HasLastSubevent",
+    "HasPainCharacter",
+    "HasPainIntensity",
+    "HasPrerequisite",
+    "HasProperty",
+    "HasSubevent",
+    "InheritsFrom",
+    "InstanceOf",
+    "IsA",
+    "LocatedNear",
+    "LocationOfAction",
+    "MadeOf",
+    "MotivatedByGoal",
+    "NotCapableOf",
+    "NotDesires",
+    "NotHasA",
+    "NotHasProperty",
+    "NotIsA",
+    "NotMadeOf",
+    "PartOf",
+    "ReceivesAction",
+    "RelatedTo",
+    "SymbolOf",
+    "UsedFor",
 ]
 
 special = [data.start_token, data.end_token]
@@ -68,8 +94,9 @@ data_loader.make_tensors(text_encoder, special, test=False)
 opt.data.maxr = data_loader.max_r
 
 save_path = "data/conceptnet/processed/generation"
-save_name = os.path.join(save_path, "{}.pickle".format(
-    utils.make_name_string(opt.data)))
+save_name = os.path.join(
+    save_path, "{}.pickle".format(utils.make_name_string(opt.data))
+)
 
 utils.mkpath(save_path)
 

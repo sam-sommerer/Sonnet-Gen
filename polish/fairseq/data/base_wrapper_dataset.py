@@ -9,7 +9,6 @@ from . import FairseqDataset
 
 
 class BaseWrapperDataset(FairseqDataset):
-
     def __init__(self, dataset):
         super().__init__()
         self.dataset = dataset
@@ -21,7 +20,7 @@ class BaseWrapperDataset(FairseqDataset):
         return len(self.dataset)
 
     def collater(self, samples):
-        if hasattr(self.dataset, 'collater'):
+        if hasattr(self.dataset, "collater"):
             return self.dataset.collater(samples)
         else:
             return default_collate(samples)
@@ -41,12 +40,12 @@ class BaseWrapperDataset(FairseqDataset):
 
     @property
     def supports_prefetch(self):
-        return getattr(self.dataset, 'supports_prefetch', False)
+        return getattr(self.dataset, "supports_prefetch", False)
 
     def prefetch(self, indices):
         self.dataset.prefetch(indices)
 
     def set_epoch(self, epoch):
         super().set_epoch(epoch)
-        if hasattr(self.dataset, 'set_epoch'):
+        if hasattr(self.dataset, "set_epoch"):
             self.dataset.set_epoch(epoch)

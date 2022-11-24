@@ -24,12 +24,18 @@ import numpy as np
 import random
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--generation_set_size", type=str, default='full', choices=["full", "human"])
+parser.add_argument(
+    "--generation_set_size", type=str, default="full", choices=["full", "human"]
+)
 parser.add_argument("--device", type=int, default=0)
 parser.add_argument("--split", type=str, default="dev")
 parser.add_argument("--seed", type=int, default=42)
 parser.add_argument("--experiment_num", type=str, default="0")
-parser.add_argument("--model_name", type=str, default="models/atomic-generation/iteration-500-50000/transformer/categories_oEffect#oReact#oWant#xAttr#xEffect#xIntent#xNeed#xReact#xWant-maxe1_17-maxe2_35-maxr_1/model_transformer-nL_12-nH_12-hSize_768-edpt_0.1-adpt_0.1-rdpt_0.1-odpt_0.1-pt_gpt-afn_gelu-init_pt-vSize_40542/exp_generation-seed_123-l2_0.01-vl2_T-lrsched_warmup_linear-lrwarm_0.002-clip_1-loss_nll-b2_0.999-b1_0.9-e_1e-08/bs_1-smax_40-sample_greedy-numseq_1-gs_1000-es_1000-categories_oEffect#oReact#oWant#xAttr#xEffect#xIntent#xNeed#xReact#xWant/6.25e-05_adam_64_22000.pickle")
+parser.add_argument(
+    "--model_name",
+    type=str,
+    default="models/atomic-generation/iteration-500-50000/transformer/categories_oEffect#oReact#oWant#xAttr#xEffect#xIntent#xNeed#xReact#xWant-maxe1_17-maxe2_35-maxr_1/model_transformer-nL_12-nH_12-hSize_768-edpt_0.1-adpt_0.1-rdpt_0.1-odpt_0.1-pt_gpt-afn_gelu-init_pt-vSize_40542/exp_generation-seed_123-l2_0.01-vl2_T-lrsched_warmup_linear-lrwarm_0.002-clip_1-loss_nll-b2_0.999-b1_0.9-e_1e-08/bs_1-smax_40-sample_greedy-numseq_1-gs_1000-es_1000-categories_oEffect#oReact#oWant#xAttr#xEffect#xIntent#xNeed#xReact#xWant/6.25e-05_adam_64_22000.pickle",
+)
 parser.add_argument("--gen_len", type=int, default=100)
 
 args = parser.parse_args()
@@ -66,7 +72,9 @@ categories = opt.data.categories
 
 path = "data/atomic/processed/generation/{}.pickle".format(
     utils.make_name_string(opt.data).replace(
-        "kr_{}".format(opt.data.get("kr", 1)), "kr_1"))
+        "kr_{}".format(opt.data.get("kr", 1)), "kr_1"
+    )
+)
 data_loader = data.make_data_loader(opt, categories)
 loaded = data_loader.load_data(path)
 
@@ -100,7 +108,8 @@ print("Building Model")
 print(opt.exp)
 
 model = models.make_model(
-    opt, n_vocab, n_ctx, 0, load=False, return_acts=False, return_probs=True)
+    opt, n_vocab, n_ctx, 0, load=False, return_acts=False, return_probs=True
+)
 
 models.load_state_dict(model, model_stuff["state_dict"])
 
@@ -124,6 +133,7 @@ torch.cuda.manual_seed_all(args.seed)
 
 lm_model = model
 
+
 def make_batch(X):
     X = np.array(X)
     assert X.ndim in [1, 2]
@@ -146,7 +156,12 @@ def append_batch(X, next_idx, mask):
 data_loader.reset_offsets(splits=split, shuffle=False)
 
 if args.generation_set_size == "full":
-    b = [tuple(j) for j in data_loader.sequences[split]['total'][:, :data_loader.max_event + 1].tolist()]
+    b = [
+        tuple(j)
+        for j in data_loader.sequences[split]["total"][
+            :, : data_loader.max_event + 1
+        ].tolist()
+    ]
     total = []
     set_total = set()
     for i, sequence in enumerate(b):
@@ -154,7 +169,11 @@ if args.generation_set_size == "full":
             total.append(i)
             set_total.add(sequence)
 elif args.generation_set_size == "human":
-    human_events = open("data/atomic/{}-human-eval-events.txt".format(split), "r").read().split("\n")
+    human_events = (
+        open("data/atomic/{}-human-eval-events.txt".format(split), "r")
+        .read()
+        .split("\n")
+    )
     found = []
     total = []
     for i, j in enumerate(data_loader.data[split]["total"]):
@@ -170,8 +189,9 @@ final_sequences = []
 
 end_token = text_encoder.encoder[data.end_token]
 
-eval_file_name = args.model_name.replace("gs_1000", "gs_{}".format(
-    args.generation_set_size))
+eval_file_name = args.model_name.replace(
+    "gs_1000", "gs_{}".format(args.generation_set_size)
+)
 eval_file_name = eval_file_name[:-7] + "/{}.gens".format(split)
 eval_file_name = eval_file_name.replace("models/", "results/gens/")
 
@@ -183,16 +203,22 @@ with torch.no_grad():
 
         batch, reset = data_loader.sample_batch(split=split, bs=1, idxs=[idx])
 
-        XMB = batch["sequences"][:, :context_size_event + 1]
-        Ref = batch["sequences"][:, context_size_event + 1:]
-        MMB = batch["attention_mask"][:, :context_size_event + 1]
+        XMB = batch["sequences"][:, : context_size_event + 1]
+        Ref = batch["sequences"][:, context_size_event + 1 :]
+        MMB = batch["attention_mask"][:, : context_size_event + 1]
 
-        init = "".join([text_encoder.decoder[i].replace('</w>', ' ').replace(
-                "<blank>", "___ ") for i in XMB[:, :-1].squeeze().tolist() if i])
+        init = "".join(
+            [
+                text_encoder.decoder[i].replace("</w>", " ").replace("<blank>", "___ ")
+                for i in XMB[:, :-1].squeeze().tolist()
+                if i
+            ]
+        )
         attr = text_encoder.decoder[XMB[:, -1].item()].strip("<>")
 
         XMB = model_utils.prepare_position_embeddings(
-            opt, text_encoder.encoder, XMB.unsqueeze(-1))
+            opt, text_encoder.encoder, XMB.unsqueeze(-1)
+        )
 
         sequence_all["event"] = init
         sequence_all["effect_type"] = attr
@@ -229,14 +255,23 @@ with torch.no_grad():
         beams = []
 
         for beam in seqs:
-            beams.append(" ".join("".join(
-                [text_encoder.decoder[tok.item()].replace(
-                    '</w>', ' ').replace('\n', '')
-                 for tok in beam if tok != end_token]).split()))
+            beams.append(
+                " ".join(
+                    "".join(
+                        [
+                            text_encoder.decoder[tok.item()]
+                            .replace("</w>", " ")
+                            .replace("\n", "")
+                            for tok in beam
+                            if tok != end_token
+                        ]
+                    ).split()
+                )
+            )
 
         # print(beams[0])
 
-        sequence_all['beams'] = beams
+        sequence_all["beams"] = beams
         final_sequences.append(sequence_all)
 
 import pickle
@@ -245,4 +280,3 @@ utils.mkpath("/".join(eval_file_name.split("/")[:-1]))
 
 with open(eval_file_name, "wb") as f:
     pickle.dump(final_sequences, f)
-

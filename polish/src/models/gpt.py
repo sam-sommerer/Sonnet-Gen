@@ -10,27 +10,26 @@ import torch.nn.functional as F
 from torch.nn.parameter import Parameter
 
 
-'''
+"""
 Much of this code is taken from HuggingFace's OpenAI LM Implementation here:
 
 https://github.com/huggingface/pytorch-openai-transformer-lm
-'''
+"""
 
 
 def gelu(x):
-    return (0.5 * x * (1 + torch.tanh(math.sqrt(2 / math.pi) *
-            (x + 0.044715 * torch.pow(x, 3)))))
+    return (
+        0.5
+        * x
+        * (1 + torch.tanh(math.sqrt(2 / math.pi) * (x + 0.044715 * torch.pow(x, 3))))
+    )
 
 
 def swish(x):
     return x * torch.sigmoid(x)
 
 
-ACT_FNS = {
-    'relu': nn.ReLU,
-    'swish': swish,
-    'gelu': gelu
-}
+ACT_FNS = {"relu": nn.ReLU, "swish": swish, "gelu": gelu}
 
 
 class LayerNorm(nn.Module):
@@ -79,8 +78,9 @@ class Attention(nn.Module):
         n_state = nx  # in Attention: n_state=768 (nx=n_embd)
 
         assert n_state % cfg.nH == 0
-        self.register_buffer('b', torch.tril(torch.ones(
-            n_ctx, n_ctx)).view(1, 1, n_ctx, n_ctx))
+        self.register_buffer(
+            "b", torch.tril(torch.ones(n_ctx, n_ctx)).view(1, 1, n_ctx, n_ctx)
+        )
         self.n_head = cfg.nH
         self.split_size = n_state
         self.scale = scale
@@ -95,11 +95,10 @@ class Attention(nn.Module):
         if self.scale:
             w = w / math.sqrt(v.size(-1))
 
-        b_subset = self.b[:, :, :w.size(-2), :w.size(-1)]
+        b_subset = self.b[:, :, : w.size(-2), : w.size(-1)]
 
         if sequence_mask is not None:
-            b_subset = b_subset * sequence_mask.view(
-                sequence_mask.size(0), 1, -1)
+            b_subset = b_subset * sequence_mask.view(sequence_mask.size(0), 1, -1)
             b_subset = b_subset.permute(1, 0, 2, 3)
 
         w = w * b_subset + -1e9 * (1 - b_subset)
@@ -166,7 +165,7 @@ class Block(nn.Module):
 
 
 class TransformerModel(nn.Module):
-    """ Transformer model """
+    """Transformer model"""
 
     def __init__(self, cfg, vocab=40990, n_ctx=512):
         super(TransformerModel, self).__init__()
@@ -174,8 +173,7 @@ class TransformerModel(nn.Module):
         self.embed = nn.Embedding(vocab, cfg.hSize)
         self.drop = nn.Dropout(cfg.edpt)
         block = Block(n_ctx, cfg, scale=True)
-        self.h = nn.ModuleList([copy.deepcopy(block)
-                                for _ in range(cfg.nL)])
+        self.h = nn.ModuleList([copy.deepcopy(block) for _ in range(cfg.nL)])
 
         nn.init.normal_(self.embed.weight, std=0.02)
 
@@ -190,9 +188,11 @@ class TransformerModel(nn.Module):
 
 
 class LMModel(nn.Module):
-    """ Transformer with language model head only """
-    def __init__(self, cfg, vocab=40990, n_ctx=512,
-                 return_probs=False, return_acts=False):
+    """Transformer with language model head only"""
+
+    def __init__(
+        self, cfg, vocab=40990, n_ctx=512, return_probs=False, return_acts=False
+    ):
         super(LMModel, self).__init__()
         self.transformer = TransformerModel(cfg, vocab=vocab, n_ctx=n_ctx)
         self.lm_head = LMHead(self.transformer, cfg, trunc_and_reshape=False)
@@ -201,7 +201,7 @@ class LMModel(nn.Module):
         if self.return_probs or self.return_acts:
             pos_emb_mask = torch.zeros(1, 1, vocab)
             pos_emb_mask[:, :, -n_ctx:] = -1e12
-            self.register_buffer('pos_emb_mask', pos_emb_mask)
+            self.register_buffer("pos_emb_mask", pos_emb_mask)
 
     def forward(self, x, sequence_mask=None):
         h = self.transformer(x, sequence_mask)
@@ -214,7 +214,7 @@ class LMModel(nn.Module):
 
 
 class LMHead(nn.Module):
-    """ Language Model Head for the transformer """
+    """Language Model Head for the transformer"""
 
     def __init__(self, model, cfg, trunc_and_reshape=True):
         super(LMHead, self).__init__()
@@ -226,35 +226,45 @@ class LMHead(nn.Module):
 
     def forward(self, h):
         # Truncated Language modeling logits (we remove the last token)
-        h_trunc = h[:, :-1].contiguous().view(-1, self.n_embd) \
-            if self.trunc_and_reshape else h  # XD
+        h_trunc = (
+            h[:, :-1].contiguous().view(-1, self.n_embd)
+            if self.trunc_and_reshape
+            else h
+        )  # XD
         lm_logits = self.decoder(h_trunc)
         return lm_logits
 
 
-def load_openai_pretrained_model(model, n_ctx=-1, n_special=-1, n_transfer=12,
-                                 n_embd=768, path='./model/', path_names='./'):
+def load_openai_pretrained_model(
+    model,
+    n_ctx=-1,
+    n_special=-1,
+    n_transfer=12,
+    n_embd=768,
+    path="./model/",
+    path_names="./",
+):
     # Load weights from TF model
     print("Loading weights...")
-    names = json.load(open(path_names + 'parameters_names.json'))
-    shapes = json.load(open(path + 'params_shapes.json'))
+    names = json.load(open(path_names + "parameters_names.json"))
+    shapes = json.load(open(path + "params_shapes.json"))
     offsets = np.cumsum([np.prod(shape) for shape in shapes])
-    init_params = [np.load(path + 'params_{}.npy'.format(n)) for n in range(10)]
+    init_params = [np.load(path + "params_{}.npy".format(n)) for n in range(10)]
     init_params = np.split(np.concatenate(init_params, 0), offsets)[:-1]
     init_params = [param.reshape(shape) for param, shape in zip(init_params, shapes)]
     if n_ctx > 0:
         init_params[0] = init_params[0][:n_ctx]
     if n_special > 0:
         init_params[0] = np.concatenate(
-            [init_params[1],
-             (np.random.randn(n_special, n_embd) * 0.02).astype(np.float32),
-             init_params[0]
-             ], 0)
+            [
+                init_params[1],
+                (np.random.randn(n_special, n_embd) * 0.02).astype(np.float32),
+                init_params[0],
+            ],
+            0,
+        )
     else:
-        init_params[0] = np.concatenate(
-            [init_params[1],
-             init_params[0]
-             ], 0)
+        init_params[0] = np.concatenate([init_params[1], init_params[0]], 0)
     del init_params[1]
     if n_transfer == -1:
         n_transfer = 0
@@ -274,11 +284,11 @@ def load_openai_pretrained_model(model, n_ctx=-1, n_special=-1, n_transfer=12,
         name = name[6:]  # skip "model/"
         assert name[-2:] == ":0"
         name = name[:-2]
-        name = name.split('/')
+        name = name.split("/")
         pointer = model
         for m_name in name:
-            if re.fullmatch(r'[A-Za-z]+\d+', m_name):
-                l = re.split(r'(\d+)', m_name)
+            if re.fullmatch(r"[A-Za-z]+\d+", m_name):
+                l = re.split(r"(\d+)", m_name)
             else:
                 l = [m_name]
             pointer = getattr(pointer, l[0])
@@ -295,17 +305,21 @@ def load_openai_pretrained_model(model, n_ctx=-1, n_special=-1, n_transfer=12,
 
 class dotdict(dict):
     """dot.notation access to dictionary attributes"""
+
     __getattr__ = dict.get
     __setattr__ = dict.__setitem__
     __delattr__ = dict.__delitem__
 
 
-DEFAULT_CONFIG = dotdict({
-    'n_embd': 768,
-    'n_head': 12,
-    'n_layer': 12,
-    'embd_pdrop': 0.1,
-    'attn_pdrop': 0.1,
-    'resid_pdrop': 0.1,
-    'afn': 'gelu',
-    'clf_pdrop': 0.1})
+DEFAULT_CONFIG = dotdict(
+    {
+        "n_embd": 768,
+        "n_head": 12,
+        "n_layer": 12,
+        "embd_pdrop": 0.1,
+        "attn_pdrop": 0.1,
+        "resid_pdrop": 0.1,
+        "afn": "gelu",
+        "clf_pdrop": 0.1,
+    }
+)

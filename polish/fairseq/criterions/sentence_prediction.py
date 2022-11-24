@@ -13,9 +13,8 @@ from fairseq import utils1 as utils
 from fairseq.criterions import FairseqCriterion, register_criterion
 
 
-@register_criterion('sentence_prediction')
+@register_criterion("sentence_prediction")
 class SentencePredictionCriterion(FairseqCriterion):
-
     @staticmethod
     def add_args(parser):
         # fmt: off
@@ -33,12 +32,12 @@ class SentencePredictionCriterion(FairseqCriterion):
         3) logging outputs to display while training
         """
         assert (
-            hasattr(model, 'classification_heads')
+            hasattr(model, "classification_heads")
             and self.args.classification_head_name in model.classification_heads
-        ), 'model must provide sentence classification head for --criterion=sentence_prediction'
+        ), "model must provide sentence classification head for --criterion=sentence_prediction"
 
         logits, _ = model(
-            **sample['net_input'],
+            **sample["net_input"],
             features_only=True,
             classification_head_name=self.args.classification_head_name,
         )
@@ -49,7 +48,7 @@ class SentencePredictionCriterion(FairseqCriterion):
             loss = F.nll_loss(
                 F.log_softmax(logits, dim=-1, dtype=torch.float32),
                 targets,
-                reduction='sum',
+                reduction="sum",
             )
         else:
             logits = logits.squeeze().float()
@@ -57,36 +56,40 @@ class SentencePredictionCriterion(FairseqCriterion):
             loss = F.mse_loss(
                 logits,
                 targets,
-                reduction='sum',
+                reduction="sum",
             )
 
         logging_output = {
-            'loss': utils.item(loss.data) if reduce else loss.data,
-            'ntokens': sample['ntokens'],
-            'nsentences': sample_size,
-            'sample_size': sample_size,
+            "loss": utils.item(loss.data) if reduce else loss.data,
+            "ntokens": sample["ntokens"],
+            "nsentences": sample_size,
+            "sample_size": sample_size,
         }
         if not self.args.regression_target:
             preds = logits.argmax(dim=1)
-            logging_output['ncorrect'] = (preds == targets).sum()
+            logging_output["ncorrect"] = (preds == targets).sum()
 
         return loss, sample_size, logging_output
 
     @staticmethod
     def reduce_metrics(logging_outputs) -> None:
         """Aggregate logging outputs from data parallel training."""
-        loss_sum = sum(log.get('loss', 0) for log in logging_outputs)
-        ntokens = sum(log.get('ntokens', 0) for log in logging_outputs)
-        nsentences = sum(log.get('nsentences', 0) for log in logging_outputs)
-        sample_size = sum(log.get('sample_size', 0) for log in logging_outputs)
+        loss_sum = sum(log.get("loss", 0) for log in logging_outputs)
+        ntokens = sum(log.get("ntokens", 0) for log in logging_outputs)
+        nsentences = sum(log.get("nsentences", 0) for log in logging_outputs)
+        sample_size = sum(log.get("sample_size", 0) for log in logging_outputs)
 
-        metrics.log_scalar('loss', loss_sum / sample_size / math.log(2), sample_size, round=3)
+        metrics.log_scalar(
+            "loss", loss_sum / sample_size / math.log(2), sample_size, round=3
+        )
         if sample_size != ntokens:
-            metrics.log_scalar('nll_loss', loss_sum / ntokens / math.log(2), ntokens, round=3)
+            metrics.log_scalar(
+                "nll_loss", loss_sum / ntokens / math.log(2), ntokens, round=3
+            )
 
-        if len(logging_outputs) > 0 and 'ncorrect' in logging_outputs[0]:
-            ncorrect = sum(log.get('ncorrect', 0) for log in logging_outputs)
-            metrics.log_scalar('accuracy', ncorrect / nsentences, nsentences, round=3)
+        if len(logging_outputs) > 0 and "ncorrect" in logging_outputs[0]:
+            ncorrect = sum(log.get("ncorrect", 0) for log in logging_outputs)
+            metrics.log_scalar("accuracy", ncorrect / nsentences, nsentences, round=3)
 
     @staticmethod
     def logging_outputs_can_be_summed() -> bool:

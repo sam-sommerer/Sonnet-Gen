@@ -18,8 +18,8 @@ from fairseq.data import encoders
 
 def from_pretrained(
     model_name_or_path,
-    checkpoint_file='model.pt',
-    data_name_or_path='.',
+    checkpoint_file="model.pt",
+    data_name_or_path=".",
     archive_map=None,
     **kwargs
 ):
@@ -35,44 +35,44 @@ def from_pretrained(
         # for each model
         if isinstance(model_name_or_path, dict):
             for k, v in model_name_or_path.items():
-                if k == 'checkpoint_file':
+                if k == "checkpoint_file":
                     checkpoint_file = v
                 elif (
-                    k != 'path'
+                    k != "path"
                     # only set kwargs that don't already have overrides
                     and k not in kwargs
                 ):
                     kwargs[k] = v
-            model_name_or_path = model_name_or_path['path']
+            model_name_or_path = model_name_or_path["path"]
 
     model_path = file_utils.load_archive_file(model_name_or_path)
 
     # convenience hack for loading data and BPE codes from model archive
-    if data_name_or_path.startswith('.'):
-        kwargs['data'] = os.path.abspath(os.path.join(model_path, data_name_or_path))
+    if data_name_or_path.startswith("."):
+        kwargs["data"] = os.path.abspath(os.path.join(model_path, data_name_or_path))
     else:
-        kwargs['data'] = file_utils.load_archive_file(data_name_or_path)
+        kwargs["data"] = file_utils.load_archive_file(data_name_or_path)
     for file, arg in {
-        'code': 'bpe_codes',
-        'bpecodes': 'bpe_codes',
-        'sentencepiece.bpe.model': 'sentencepiece_vocab',
+        "code": "bpe_codes",
+        "bpecodes": "bpe_codes",
+        "sentencepiece.bpe.model": "sentencepiece_vocab",
     }.items():
         path = os.path.join(model_path, file)
         if os.path.exists(path):
             kwargs[arg] = path
 
-    if 'user_dir' in kwargs:
-        utils.import_user_module(argparse.Namespace(user_dir=kwargs['user_dir']))
+    if "user_dir" in kwargs:
+        utils.import_user_module(argparse.Namespace(user_dir=kwargs["user_dir"]))
 
     models, args, task = checkpoint_utils.load_model_ensemble_and_task(
-        [os.path.join(model_path, cpt) for cpt in checkpoint_file.split(':')],
+        [os.path.join(model_path, cpt) for cpt in checkpoint_file.split(":")],
         arg_overrides=kwargs,
     )
 
     return {
-        'args': args,
-        'task': task,
-        'models': models,
+        "args": args,
+        "task": task,
+        "models": models,
     }
 
 
@@ -94,15 +94,16 @@ class GeneratorHubInterface(nn.Module):
         for model in self.models:
             model.make_generation_fast_(
                 beamable_mm_beam_size=(
-                    None if getattr(args, 'no_beamable_mm', False)
-                    else getattr(args, 'beam', 5)
+                    None
+                    if getattr(args, "no_beamable_mm", False)
+                    else getattr(args, "beam", 5)
                 ),
-                need_attn=getattr(args, 'print_alignment', False),
+                need_attn=getattr(args, "print_alignment", False),
             )
 
         # Load alignment dictionary for unknown word replacement
         # (None if no unknown word replacement, empty if no path to align dictionary)
-        self.align_dict = utils.load_align_dict(getattr(args, 'replace_unk', None))
+        self.align_dict = utils.load_align_dict(getattr(args, "replace_unk", None))
 
         self.tokenizer = encoders.build_tokenizer(args)
         self.bpe = encoders.build_bpe(args)
@@ -112,28 +113,37 @@ class GeneratorHubInterface(nn.Module):
         )
 
         # this is useful for determining the device
-        self.register_buffer('_float_tensor', torch.tensor([0], dtype=torch.float))
+        self.register_buffer("_float_tensor", torch.tensor([0], dtype=torch.float))
 
     @property
     def device(self):
         return self._float_tensor.device
 
-    def translate(self, sentences: List[str], beam: int = 5, verbose: bool = False, **kwargs) -> List[str]:
+    def translate(
+        self, sentences: List[str], beam: int = 5, verbose: bool = False, **kwargs
+    ) -> List[str]:
         return self.sample(sentences, beam, verbose, **kwargs)
 
-    def sample(self, sentences: List[str], beam: int = 1, verbose: bool = False, **kwargs) -> List[str]:
+    def sample(
+        self, sentences: List[str], beam: int = 1, verbose: bool = False, **kwargs
+    ) -> List[str]:
         if isinstance(sentences, str):
             return self.sample([sentences], beam=beam, verbose=verbose, **kwargs)[0]
         tokenized_sentences = [self.encode(sentence) for sentence in sentences]
         batched_hypos = self.generate(tokenized_sentences, beam, verbose, **kwargs)
-        return [self.decode(hypos[0]['tokens']) for hypos in batched_hypos]
+        return [self.decode(hypos[0]["tokens"]) for hypos in batched_hypos]
 
     def score(self, sentences: List[str], **kwargs):
         if isinstance(sentences, str):
             return self.score([sentences], **kwargs)[0]
         # NOTE: this doesn't support translation tasks currently
         tokenized_sentences = [self.encode(sentence) for sentence in sentences]
-        return [hypos[0] for hypos in self.generate(tokenized_sentences, score_reference=True, **kwargs)]
+        return [
+            hypos[0]
+            for hypos in self.generate(
+                tokenized_sentences, score_reference=True, **kwargs
+            )
+        ]
 
     def generate(
         self,
@@ -172,17 +182,33 @@ class GeneratorHubInterface(nn.Module):
 
             for source_tokens, target_hypotheses in zip(tokenized_sentences, outputs):
                 src_str_with_unk = self.string(source_tokens)
-                print('S\t{}'.format(src_str_with_unk))
+                print("S\t{}".format(src_str_with_unk))
                 for hypo in target_hypotheses:
-                    hypo_str = self.decode(hypo['tokens'])
-                    print('H\t{}\t{}'.format(hypo['score'], hypo_str))
-                    print('P\t{}'.format(
-                        ' '.join(map(lambda x: '{:.4f}'.format(x), hypo['positional_scores'].tolist()))
-                    ))
-                    if hypo['alignment'] is not None and getarg('print_alignment', False):
-                        print('A\t{}'.format(
-                            ' '.join(map(lambda x: str(utils.item(x)), hypo['alignment'].int().cpu()))
-                        ))
+                    hypo_str = self.decode(hypo["tokens"])
+                    print("H\t{}\t{}".format(hypo["score"], hypo_str))
+                    print(
+                        "P\t{}".format(
+                            " ".join(
+                                map(
+                                    lambda x: "{:.4f}".format(x),
+                                    hypo["positional_scores"].tolist(),
+                                )
+                            )
+                        )
+                    )
+                    if hypo["alignment"] is not None and getarg(
+                        "print_alignment", False
+                    ):
+                        print(
+                            "A\t{}".format(
+                                " ".join(
+                                    map(
+                                        lambda x: str(utils.item(x)),
+                                        hypo["alignment"].int().cpu(),
+                                    )
+                                )
+                            )
+                        )
         return outputs
 
     def encode(self, sentence: str) -> torch.LongTensor:

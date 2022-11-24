@@ -43,6 +43,7 @@ def display_df(df):
 
     console.print(table)
 
+
 # training logger to log training progress
 training_logger = Table(
     Column("Epoch", justify="center"),
@@ -57,7 +58,7 @@ training_logger = Table(
 # In[2]:
 
 
-get_ipython().system('nvidia-smi')
+get_ipython().system("nvidia-smi")
 
 
 # In[3]:
@@ -65,7 +66,8 @@ get_ipython().system('nvidia-smi')
 
 # Setting up the device for GPU usage
 from torch import cuda
-device = 'cuda:1' if cuda.is_available() else 'cpu'
+
+device = "cuda:1" if cuda.is_available() else "cpu"
 
 
 # In[4]:
@@ -191,41 +193,55 @@ def validate(epoch, tokenizer, model, device, loader):
     actuals = []
     with torch.no_grad():
         for _, data in enumerate(loader, 0):
-            y = data['target_ids'].to(device, dtype = torch.long)
+            y = data["target_ids"].to(device, dtype=torch.long)
             y_ids = y[:, :-1].contiguous()
             lm_labels = y[:, 1:].clone().detach()
             lm_labels[y[:, 1:] == tokenizer.pad_token_id] = -100
-            ids = data['source_ids'].to(device, dtype = torch.long)
-            mask = data['source_mask'].to(device, dtype = torch.long)
-            
+            ids = data["source_ids"].to(device, dtype=torch.long)
+            mask = data["source_mask"].to(device, dtype=torch.long)
 
             generated_ids = model.generate(
-              input_ids = ids,
-              attention_mask = mask, 
-              max_length=512, 
-                min_length = 100,
-              num_beams = 4,
-              no_repeat_ngram_size = 5,
-              #topp = 0.9,
-              #do_sample=True,
-              repetition_penalty=5.8, 
-              length_penalty=1, 
-              early_stopping=True
-              )
-            preds = [tokenizer.decode(g, skip_special_tokens=True, clean_up_tokenization_spaces=True) for g in generated_ids]
-            target = [tokenizer.decode(t, skip_special_tokens=True, clean_up_tokenization_spaces=True)for t in y]
-            input_text = [tokenizer.decode(t, skip_special_tokens=True, clean_up_tokenization_spaces=True)for t in ids]
-            if _%50==0:
+                input_ids=ids,
+                attention_mask=mask,
+                max_length=512,
+                min_length=100,
+                num_beams=4,
+                no_repeat_ngram_size=5,
+                # topp = 0.9,
+                # do_sample=True,
+                repetition_penalty=5.8,
+                length_penalty=1,
+                early_stopping=True,
+            )
+            preds = [
+                tokenizer.decode(
+                    g, skip_special_tokens=True, clean_up_tokenization_spaces=True
+                )
+                for g in generated_ids
+            ]
+            target = [
+                tokenizer.decode(
+                    t, skip_special_tokens=True, clean_up_tokenization_spaces=True
+                )
+                for t in y
+            ]
+            input_text = [
+                tokenizer.decode(
+                    t, skip_special_tokens=True, clean_up_tokenization_spaces=True
+                )
+                for t in ids
+            ]
+            if _ % 50 == 0:
                 outputs = model(
-                        input_ids=ids,
-                        attention_mask=mask,
-                        decoder_input_ids=y_ids,
-                        labels=lm_labels,
-                        )
+                    input_ids=ids,
+                    attention_mask=mask,
+                    decoder_input_ids=y_ids,
+                    labels=lm_labels,
+                )
                 loss = outputs[0]
-                console.print(f'Completed {_}')
-                console.print('loss: '+ str(loss))
-            
+                console.print(f"Completed {_}")
+                console.print("loss: " + str(loss))
+
             predictions.extend(preds)
             actuals.extend(target)
             inputs.extend(input_text)
@@ -241,31 +257,40 @@ def generate(tokenizer, model, device, loader):
     predictions = []
     with torch.no_grad():
         for _, data in enumerate(loader, 0):
-            y = data['target_ids'].to(device, dtype = torch.long)
+            y = data["target_ids"].to(device, dtype=torch.long)
             y_ids = y[:, :-1].contiguous()
             lm_labels = y[:, 1:].clone().detach()
             lm_labels[y[:, 1:] == tokenizer.pad_token_id] = -100
-            ids = data['source_ids'].to(device, dtype = torch.long)
-            mask = data['source_mask'].to(device, dtype = torch.long)
-            
+            ids = data["source_ids"].to(device, dtype=torch.long)
+            mask = data["source_mask"].to(device, dtype=torch.long)
 
             generated_ids = model.generate(
-              input_ids = ids,
-              attention_mask = mask, 
-              max_length=512, 
-                min_length = 100,
-              num_beams = 4,
-              no_repeat_ngram_size = 5,
-              #topp = 0.9,
-              #do_sample=True,
-              repetition_penalty=5.8, 
-              length_penalty=1, 
-              early_stopping=True
-              )
-            preds = [tokenizer.decode(g, skip_special_tokens=True, clean_up_tokenization_spaces=True) for g in generated_ids]
-            input_text = [tokenizer.decode(t, skip_special_tokens=True, clean_up_tokenization_spaces=True)for t in ids]
-            if _%50==0:
-                console.print(f'Completed {_}')
+                input_ids=ids,
+                attention_mask=mask,
+                max_length=512,
+                min_length=100,
+                num_beams=4,
+                no_repeat_ngram_size=5,
+                # topp = 0.9,
+                # do_sample=True,
+                repetition_penalty=5.8,
+                length_penalty=1,
+                early_stopping=True,
+            )
+            preds = [
+                tokenizer.decode(
+                    g, skip_special_tokens=True, clean_up_tokenization_spaces=True
+                )
+                for g in generated_ids
+            ]
+            input_text = [
+                tokenizer.decode(
+                    t, skip_special_tokens=True, clean_up_tokenization_spaces=True
+                )
+                for t in ids
+            ]
+            if _ % 50 == 0:
+                console.print(f"Completed {_}")
 
             predictions.extend(preds)
             inputs.extend(input_text)
@@ -276,7 +301,13 @@ def generate(tokenizer, model, device, loader):
 
 
 def T5Trainer(
-    dataframe, source_text, target_text, model_params, model, tokenizer, output_dir="./outputs/"
+    dataframe,
+    source_text,
+    target_text,
+    model_params,
+    model,
+    tokenizer,
+    output_dir="./outputs/",
 ):
 
     """
@@ -291,8 +322,6 @@ def T5Trainer(
 
     # logging
     console.log(f"""[Model]: Loading {model_params["MODEL"]}...\n""")
-
-    
 
     # logging
     console.log(f"[Data]: Reading data...\n")
@@ -358,9 +387,13 @@ def T5Trainer(
     for epoch in range(model_params["TRAIN_EPOCHS"]):
         train(epoch, tokenizer, model, device, training_loader, optimizer)
         console.log(f"[Initiating Validation]...\n")
-        inputs, predictions, actuals = validate(epoch, tokenizer, model, device, val_loader)
-        final_df = pd.DataFrame({'Input': inputs, "Generated Text": predictions, "Actual Text": actuals})
-        final_df.to_csv(os.path.join(output_dir, "predictions"+str(epoch)+".csv"))
+        inputs, predictions, actuals = validate(
+            epoch, tokenizer, model, device, val_loader
+        )
+        final_df = pd.DataFrame(
+            {"Input": inputs, "Generated Text": predictions, "Actual Text": actuals}
+        )
+        final_df.to_csv(os.path.join(output_dir, "predictions" + str(epoch) + ".csv"))
 
     console.log(f"[Saving Model]...\n")
     # Saving the model after training
@@ -369,7 +402,6 @@ def T5Trainer(
     tokenizer.save_pretrained(path)
 
     # evaluating test dataset
-    
 
     console.save_text(os.path.join(output_dir, "logs.txt"))
 
@@ -386,14 +418,14 @@ def T5Trainer(
 # In[9]:
 
 
-f = open('all_stories_short_theme_train.json', errors='ignore').readlines()
-all_stories_short =  json.loads(f[0])
-f = open('../code_news/all_news_short_theme.json', errors='ignore').readlines()
-all_news_short =  json.loads(f[0])
-f = open('../code_news/all_news_long_theme.json', errors='ignore').readlines()
-all_news_long =  json.loads(f[0])
-f = open('../code_scary_stories/all_scary_stories.json', errors='ignore').readlines()
-all_scary =  json.loads(f[0])
+f = open("all_stories_short_theme_train.json", errors="ignore").readlines()
+all_stories_short = json.loads(f[0])
+f = open("../code_news/all_news_short_theme.json", errors="ignore").readlines()
+all_news_short = json.loads(f[0])
+f = open("../code_news/all_news_long_theme.json", errors="ignore").readlines()
+all_news_long = json.loads(f[0])
+f = open("../code_scary_stories/all_scary_stories.json", errors="ignore").readlines()
+all_scary = json.loads(f[0])
 
 
 # In[10]:
@@ -405,57 +437,56 @@ len(all_stories_short), len(all_news_short), len(all_news_long), len(all_scary)
 # In[11]:
 
 
-all_poetry_foundation = all_stories_short+all_news_short+all_news_long+all_scary
+all_poetry_foundation = all_stories_short + all_news_short + all_news_long + all_scary
 
 
 # In[12]:
 
 
-end_token = '</s>'
+end_token = "</s>"
 X_titles = []
 y_keywords = []
-template = ['MASK', 'MASK', 'MASK']
-prompt = 'Generate keywords for the title: '
+template = ["MASK", "MASK", "MASK"]
+prompt = "Generate keywords for the title: "
 title_set = []
 
 for poem in all_poetry_foundation:
-    title_set.append(poem['Theme'])
-    title = prompt + poem['Theme']
+    title_set.append(poem["Theme"])
+    title = prompt + poem["Theme"]
     paddings = []
     temp = []
     count = 0
-    for key in poem['keywords']:
-        if key == ['<paragraph>']:
+    for key in poem["keywords"]:
+        if key == ["<paragraph>"]:
             continue
-        count +=1
-        mask = template[:len(key)]
-        paddings.append('Keywords: '+ str(mask))        
-        temp.append('Keywords: '+ str(key))
+        count += 1
+        mask = template[: len(key)]
+        paddings.append("Keywords: " + str(mask))
+        temp.append("Keywords: " + str(key))
         if count >= 20:
             break
 
-    paddings = '. '.join(paddings).replace('<paragraph> ','').replace("'","")
-    temp = '. '.join(temp).replace('<paragraph> ','').replace("'","")
+    paddings = ". ".join(paddings).replace("<paragraph> ", "").replace("'", "")
+    temp = ". ".join(temp).replace("<paragraph> ", "").replace("'", "")
 
-    X_titles.append(title + '. ' + paddings + ' '+ end_token)
-    y_keywords.append(temp+ ' '+ end_token) 
+    X_titles.append(title + ". " + paddings + " " + end_token)
+    y_keywords.append(temp + " " + end_token)
 
 
 # In[13]:
 
 
 data = [X_titles, y_keywords]
-df = pd.DataFrame(np.array(data).T, columns = ['title', 'keywords'])
+df = pd.DataFrame(np.array(data).T, columns=["title", "keywords"])
 df.head()
 
 
 # In[14]:
 
 
-
 # let's define model parameters specific to T5
 model_params = {
-    "TASK" : "keywords_mix",
+    "TASK": "keywords_mix",
     "MODEL": "t5-large",  # model_type: t5-base/t5-large
     "TRAIN_BATCH_SIZE": 3,  # training batch size
     "VALID_BATCH_SIZE": 3,  # validation batch size
@@ -482,7 +513,15 @@ model = model.to(device)
 # In[19]:
 
 
-output_dir= model_params['MODEL']+"_batch_size_"+ str(model_params['TRAIN_BATCH_SIZE']) + "_lr_"+ str(model_params['LEARNING_RATE'])+ "_" + model_params['TASK']
+output_dir = (
+    model_params["MODEL"]
+    + "_batch_size_"
+    + str(model_params["TRAIN_BATCH_SIZE"])
+    + "_lr_"
+    + str(model_params["LEARNING_RATE"])
+    + "_"
+    + model_params["TASK"]
+)
 if not os.path.exists(output_dir):
     os.makedirs(output_dir)
 
@@ -496,20 +535,16 @@ output_dir
 # In[18]:
 
 
-#GPU usage: 37k MB for T5 large, batch_size = 3, max_len = 550
+# GPU usage: 37k MB for T5 large, batch_size = 3, max_len = 550
 T5Trainer(
     dataframe=df,
     source_text="title",
     target_text="keywords",
     model_params=model_params,
-    model = model,
-    tokenizer = tokenizer,
-    output_dir = output_dir
+    model=model,
+    tokenizer=tokenizer,
+    output_dir=output_dir,
 )
 
 
 # In[ ]:
-
-
-
-

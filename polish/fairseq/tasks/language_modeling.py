@@ -223,10 +223,16 @@ class LanguageModelingTask(FairseqTask):
             {
                 "id": IdDataset(),
                 "net_input": {
-                    "src_tokens": PadDataset(src_dataset, pad_idx=self.source_dictionary.pad(), left_pad=False),
+                    "src_tokens": PadDataset(
+                        src_dataset,
+                        pad_idx=self.source_dictionary.pad(),
+                        left_pad=False,
+                    ),
                     "src_lengths": NumelDataset(src_dataset, reduce=False),
                 },
-                "target": PadDataset(tgt_dataset, pad_idx=self.source_dictionary.pad(), left_pad=False),
+                "target": PadDataset(
+                    tgt_dataset, pad_idx=self.source_dictionary.pad(), left_pad=False
+                ),
             },
             sizes=[np.array(src_lengths)],
         )
@@ -247,7 +253,10 @@ class LanguageModelingTask(FairseqTask):
                     prefix_tokens = prefix_tokens[:, 1:]
 
             return generator.generate(
-                models, sample, prefix_tokens=prefix_tokens, bos_token=bos_token,
+                models,
+                sample,
+                prefix_tokens=prefix_tokens,
+                bos_token=bos_token,
             )
 
     @property
