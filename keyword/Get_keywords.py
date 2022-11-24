@@ -124,6 +124,7 @@ for s, p in zip(filtered_stories, filtered_prompts):
     all_story.append(story)
     if len(all_story) % 500 == 1:
         print(len(all_story))
+        with
         json.dump(all_story, open("all_news_short_theme" ".json", "w"))
 
 
