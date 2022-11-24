@@ -56,17 +56,19 @@ def get_and_dump_keywords(stories, prompts):
         for sent in sents:
             kws = kw_extractor.extract_keywords(sent)
             keywords = [kw[0] for kw in kws]
-            if len(keywords) >= 2:
+            if len(keywords) >= 3:
                 informative_lines.append(sent)
                 story_keywords.append(keywords)
         story["sentiments"] = sentiments
         story["keywords"] = story_keywords
         story["sentences"] = informative_lines
         all_story.append(story)
-        if len(all_story) % 500 == 1:
-            print(len(all_story))
-            with open("../data/all_news_short_theme.json", "w") as f:
-                json.dump(all_story, f, indent=4)
+        # if len(all_story) % 500 == 1:
+        #     print(len(all_story))
+        #     with open("../data/all_news_short_theme.json", "w") as f:
+        #         json.dump(all_story, f, indent=4)
+    with open("../data/all_news_short_theme.json", "w") as f:
+        json.dump(all_story, f, indent=4)
 
 
 if __name__ == "__main__":
