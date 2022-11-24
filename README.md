@@ -23,3 +23,11 @@ Please cite our paper if they are helpful to your work !
 } 
 ```
 
+## Villanelle Notes
+- `keyword/inference_bart_keywords_gen.ipynb` contains code to generate keywords
+- `keyword/generate_rhyme.ipynb` contains code to make lines rhyme
+- Look at `decoding.ipynb` or `demo/decode.py` for examples of how to decode
+  - `generate.py` seems to be a copy of the two above, safe to ignore
+  - Villlanelles have no restraints on pentameter, can get rid of those checks
+- Ignore `keyword/get_keywords.py` and `keyword/train-keywords-bart.ipynb`/`keyword/TrainKeywords.py`
+
