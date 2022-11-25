@@ -32,7 +32,8 @@ def clean_keywords(keywords_str):
     # piped_keywords = re.sub(keyword_prefix_pattern, "|", keywords_match)
     # keywords_split = piped_keywords.split("|")
 
-    return keywords_match
+    # return keywords_match
+    return " ".join(keywords_match)
 
 
 def fill_in_mask(bart_input, model, tokenizer, device):
