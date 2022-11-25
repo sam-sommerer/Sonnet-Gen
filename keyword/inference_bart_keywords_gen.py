@@ -22,7 +22,7 @@ from rich.console import Console
 console = Console(record=True)
 
 
-def clean_keywords(keywords_str, n_keywords):
+def clean_keywords(keywords_str):
     pattern = r"\s*\.*\s*Keywords\s*\d*\:*\s*\[(.*?)\]"
     keywords_match = re.match(pattern, keywords_str)
 
@@ -31,10 +31,6 @@ def clean_keywords(keywords_str, n_keywords):
     # keywords_split = piped_keywords.split("|")
 
     return keywords_match
-
-
-
-
 
 
 def fill_in_mask(bart_input, model, tokenizer, device):
