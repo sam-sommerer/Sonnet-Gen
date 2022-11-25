@@ -31,8 +31,6 @@ import spacy
 nlp = spacy.load("en_core_web_sm")
 import os
 import sys
-import argparse
-import torch
 
 sys.path.append(os.getcwd())
 
