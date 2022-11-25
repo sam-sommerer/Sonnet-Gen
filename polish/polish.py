@@ -108,7 +108,7 @@ def getloss(input_e1, input_e2, relation, prnt=False):
 # In[ ]:
 
 
-def getPred(input_event, relation, prnt=True, sampling_algorithm="beam-2"):
+def get_pred(input_event, relation, prnt=True, sampling_algorithm="beam-2"):
     sampler = interactive.set_sampler(opt, sampling_algorithm, data_loader)
     outputs = interactive.get_conceptnet_sequence(
         input_event, model, sampler, data_loader, text_encoder, relation, prnt
@@ -145,7 +145,7 @@ if __name__ == "__main__":
     polished_lines = []
 
     for ent in samples:
-        result = getPred(
+        result = get_pred(
             ent, relation=relations, sampling_algorithm="beam-5", prnt=False
         )
         result = result[relations[0]]["beams"][0]

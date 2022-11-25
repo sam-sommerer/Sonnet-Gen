@@ -30,4 +30,9 @@ Please cite our paper if they are helpful to your work !
   - `generate.py` seems to be a copy of the two above, safe to ignore
   - Villlanelles have no restraints on pentameter, can get rid of those checks
 - Ignore `keyword/get_keywords.py` and `keyword/train-keywords-bart.ipynb`/`keyword/TrainKeywords.py`
+- For polish functionality, the following links contain the files we need:
+  - https://github.com/tuhinjubcse/SimileGeneration-EMNLP2020
+    - https://drive.google.com/drive/folders/1KSANJ7XiPo0xqFCUG5WDhB3763EgEVnC
+  - https://github.com/NinaTian98369/HypoGen
+    - https://drive.google.com/drive/folders/1aexFfPMD8mRSaq_pQukD8NSTemxp1A0u
 

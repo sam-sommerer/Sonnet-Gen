@@ -1,4 +1,6 @@
 data
 .idea
 */.ipynb_checkpoints
-.DS_Store
+polish/checkpoint-simile
+polish/pretrained_models
+*/.DS_Store
