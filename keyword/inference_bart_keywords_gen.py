@@ -2,6 +2,7 @@
 import json
 import os
 import re
+import ast
 import numpy as np
 import pandas as pd
 import torch
@@ -19,6 +20,21 @@ from rich.console import Console
 
 # define a rich console logger
 console = Console(record=True)
+
+
+def clean_keywords(keywords_str, n_keywords):
+    pattern = r"\s*\.*\s*Keywords\s*\d*\:*\s*\[(.*?)\]"
+    keywords_match = re.match(pattern, keywords_str)
+
+    # keyword_prefix_pattern = r"\s*\.*\s*Keywords\s*\d*:\s*"
+    # piped_keywords = re.sub(keyword_prefix_pattern, "|", keywords_match)
+    # keywords_split = piped_keywords.split("|")
+
+    return keywords_match
+
+
+
+
 
 
 def fill_in_mask(bart_input, model, tokenizer, device):
@@ -46,7 +62,7 @@ def fill_in_mask(bart_input, model, tokenizer, device):
 def create_villanelle_keyword_masks(first_tercet):
     regex_filter = r"\s*\.*\s*Keywords\s*\d*:\s*"
     first_tercet_filtered = re.sub(regex_filter, "|", first_tercet[:-5])
-    first_tercet_split = first_tercet_filtered.split()
+    first_tercet_split = first_tercet_filtered.split("|")
 
     num_lines = 19
     result = ""
@@ -87,13 +103,19 @@ def generate_keywords(title, model, tokenizer, device):
     print(f"Finished generating first tercet")
     print(f"first_tercet_preds: {first_tercet_preds}")
 
+    first_tercet_preds[0] = clean_keywords(first_tercet_preds[0])
+    print(f"cleaned first preds: {first_tercet_preds}")
+
     #  get keywords for rest of villanelle using first tercet keywords
     placeholder = create_villanelle_keyword_masks(first_tercet_preds[0])
     bart_input = prompt + title + placeholder
-    preds = fill_in_mask(bart_input, model, tokenizer)
+    preds = fill_in_mask(bart_input, model, tokenizer, device)
 
     print(f"Finished generating final preds")
     print(f"preds: {preds}")
+
+    preds[0] = clean_keywords(preds[0])
+    print(f"cleaned preds: {preds}")
 
     return preds
 
