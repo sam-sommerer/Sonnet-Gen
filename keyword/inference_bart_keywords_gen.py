@@ -75,6 +75,8 @@ def create_villanelle_keyword_masks(first_tercet):
 
 
 def generate_keywords(title, model, tokenizer, device):
+    print(f"generating keywords...")
+
     prompt = "Generate keywords for the title: "
 
     #  get keywords for first tercet
@@ -98,6 +100,7 @@ def generate_keywords(title, model, tokenizer, device):
 
 if __name__ == "__main__":
     # model_path = 'facebook/bart-large_batch_8_lr_3e-060503-mix-with-eos/model_files'
+    print(f"Beginning")
     model_path = "FigoMe/sonnet_keyword_gen"  # for training
     tokenizer = BartTokenizer.from_pretrained(model_path)
     model = BartForConditionalGeneration.from_pretrained(model_path)
