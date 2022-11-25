@@ -1,8 +1,11 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[280]:
+# In[1]:
 
+
+# example
+import pronouncing
 
 four_seasons_story_line = [
     ["snow", "falling", "future"],
@@ -22,13 +25,25 @@ four_seasons_story_line = [
 ]
 
 
-# In[2]:
+# In[23]:
 
 
 import random
+
+
+# ### Imagery for nouns
+
+# In[3]:
+
+
 import spacy
 
 nlp = spacy.load("en_core_web_sm")
+
+
+# In[ ]:
+
+
 import os
 import sys
 import argparse
@@ -40,6 +55,10 @@ import src.data.data as data
 import src.data.config as cfg
 import src.interactive.functions as interactive
 
+
+# In[ ]:
+
+
 import os
 
 os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
@@ -47,9 +66,7 @@ os.environ["CUDA_VISIBLE_DEVICES"] = "3"
 cfg.device = "cpu"
 
 
-# ### Imagery
-
-# In[4]:
+# In[ ]:
 
 
 # load model
@@ -63,36 +80,26 @@ n_vocab = len(text_encoder.encoder) + n_ctx
 model = interactive.make_model(opt, 40543, 29, state_dict)
 
 
-# In[5]:
+# In[ ]:
 
 
 def getloss(input_e1, input_e2, relation, prnt=False):
     if relation not in data.conceptnet_data.conceptnet_relations:
-        # if relation == "common":
-        #     relation = common_rels
-        # else:
-        #     relation = "all"
-        relation = "all"
+        if relation == "common":
+            relation = common_rels
+        else:
+            relation = "all"
     outputs = interactive.evaluate_conceptnet_sequence(
         input_e1, model, data_loader, text_encoder, relation, input_e2
     )
 
     for key, value in outputs.items():
-        # if prnt:
-        #     print(
-        #         "{} \t {} {} {} \t\t norm: {:.4f} \t".format(
-        #             input_e1,
-        #             key,
-        #             rel_formatting[key],
-        #             input_e2,
-        #             value["normalized_loss"],
-        #         )
-        #     )
         if prnt:
             print(
-                "{} \t {} {} \t\t norm: {:.4f} \t".format(
+                "{} \t {} {} {} \t\t norm: {:.4f} \t".format(
                     input_e1,
                     key,
+                    rel_formatting[key],
                     input_e2,
                     value["normalized_loss"],
                 )
@@ -100,10 +107,10 @@ def getloss(input_e1, input_e2, relation, prnt=False):
         return round(value["normalized_loss"], 4)
 
 
-# In[6]:
+# In[ ]:
 
 
-def getPred(input_event, relation, prnt=True, sampling_algorithm="beam-2"):
+def get_pred(input_event, relation, prnt=True, sampling_algorithm="beam-2"):
     sampler = interactive.set_sampler(opt, sampling_algorithm, data_loader)
     outputs = interactive.get_conceptnet_sequence(
         input_event, model, sampler, data_loader, text_encoder, relation, prnt
@@ -111,14 +118,17 @@ def getPred(input_event, relation, prnt=True, sampling_algorithm="beam-2"):
     return outputs
 
 
-# In[33]:
+# In[48]:
 
 
 # randomly sample at most N=5 nouns, not from the same line
-# then, select the most confident M candidates to do the replacement
+
+
+# In[24]:
+
+
 N = 5
 M = 2
-
 if __name__ == "__main__":
     location_dict = {}
     for i, keywords in enumerate(four_seasons_story_line):
@@ -135,20 +145,16 @@ if __name__ == "__main__":
     score_dict = {}
     replace_dict = {}
     polished_lines = []
-    flatten_list = [j for sub in four_seasons_story_line for j in sub]
+
     for ent in samples:
-        result = getPred(
-            ent, relation=relations, sampling_algorithm="topk-10", prnt=False
-        )[relations[0]]["beams"]
-        for i in range(len(result)):
-            if result[i] not in flatten_list:
-                result = result[i]
-                break
+        result = get_pred(
+            ent, relation=relations, sampling_algorithm="beam-5", prnt=False
+        )
+        result = result[relations[0]]["beams"][0]
         score_dict[ent] = getloss(ent, result, "SymbolOf", prnt=False)
         replace_dict[ent] = result
 
     selected = sorted(score_dict.items(), key=lambda item: item[1])[:M]
-    print(f"replacing {replace_dict}")
     for ent in selected:
         ent = ent[0]
         location = location_dict[ent]
@@ -156,11 +162,9 @@ if __name__ == "__main__":
         four_seasons_story_line[location[0]][location[1]] = replace_dict[ent]
 
 
-# Ashima TODO👆: instead of randomly select, include the user in the word selection process. again, list same for simile
+# ### Simile for adjs
 
-# ### Simile
-
-# In[34]:
+# In[ ]:
 
 
 from fairseq.models.bart import BARTModel
@@ -169,7 +173,10 @@ import time
 import numpy as np
 import pickle
 
-tok = AutoTokenizer.from_pretrained("facebook/bart-large")
+
+# In[ ]:
+
+
 datadir = "simile"
 cpdir = datadir + "/"
 bart = BARTModel.from_pretrained(
@@ -182,64 +189,19 @@ bart.cuda()
 bart.eval()
 
 
-# In[37]:
+maxb = 30
+minb = 2
+t = 0.7
 
 
-import pronouncing
-
-
-# In[256]:
-
-
-def get_stress(phone):
-    stress = []
-    for s in phone.split():
-        if s[-1].isdigit():
-            stress.append(int(s[-1]))
-    for i, number in enumerate(stress):
-        if number == 2:
-            if i == 0:
-                stress[0] = 1 - stress[1]
-            else:
-                stress[i] = 1 - stress[i - 1]
-    return stress
-
-
-# In[45]:
-
-
-def alternating(stress):
-    # Check if the stress and unstress are alternating
-    check1 = len(set(stress[::2])) <= 1 and (len(set(stress[1::2])) <= 1)
-    check2 = len(set(stress)) == 2 if len(stress) >= 2 else True
-    return check1 and check2
-
-
-# In[277]:
-
-
-def is_none_phrase(vehicle):
-    if vehicle.startswith("a "):
-        vehicle = vehicle.replace("a ", "")
-    doc = nlp(vehicle)
-    flag = False
-    for ent in doc:
-        if ent.pos_ == "NOUN" or ent.pos_ == "PROPN":
-            return True
-    return False
-
-
-# Ashima TODO👆: please check if you can install allennlp, if yes, we should use https://demo.allennlp.org/constituency-parsing to detect the noun phrase
-
-# In[161]:
-
+# In[ ]:
 
 def check_meter(adj, vehicle):
     phone = pronouncing.phones_for_word(adj)[0]
     stress_adj = get_stress(phone)
-    vehicle = vehicle.strip(",.<>")
+    vehicle = vehicle.strip(',.<>')
     try:
-        if len(vehicle.split()) == 1:
+        if len(vehicle.split())==1:
             phone = pronouncing.phones_for_word(vehicle)[0]
             stress_vehicle = get_stress(phone)
         else:
@@ -247,65 +209,39 @@ def check_meter(adj, vehicle):
             for word in vehicle.split():
                 phone = pronouncing.phones_for_word(word)[0]
                 stress_vehicle += get_stress(phone)
-        # assume 'like' can be either stressed or unstressed
-        if stress_vehicle[0] == stress_adj[-1] and alternating(stress_vehicle):
+        #assume 'like' can be either stressed or unstressed
+        if stress_vehicle[0]==stress_adj[-1] and alternating(stress_vehicle):
             return True
     except:
         pass
     return False
 
 
-# In[272]:
+def simile_vehicle(inp):
+    last_word = inp.split()[-1]
+    inp = inp.replace(" so ", " ")
+    slines = [inp]
+    answer = ""
+
+    while True:
+        hypotheses_batch = bart.sample(
+            slines,
+            sampling=True,
+            sampling_topk=5,
+            temperature=t,
+            lenpen=2.0,
+            max_len_b=maxb,
+            min_len=minb,
+            no_repeat_ngram_size=3,
+        )
+        for hypothesis in hypotheses_batch:
+            answer = hypothesis.replace("\n", "")
+        vehicle = answer.strip().split(" like ")[1].replace("<EOT>", "")
+        if check_meter(vehicle):
+            return vehicle
 
 
-check_meter("incredible", "a miracle")
-
-
-# In[271]:
-
-
-is_none_phrase("a miracle")
-
-
-# In[269]:
-
-
-def simile_vehicle(inp, t=0.7):
-    simile_phrases = []
-    prefix = inp + " like"
-    inputs = [prefix] * 10
-    l = len(tok(prefix)[0])
-    hypotheses_batch = bart.sample(
-        inputs,
-        sampling=True,
-        sampling_topk=5,
-        temperature=t,
-        max_len_b=l + 2,
-        min_len=l,
-    )
-    for hypothesis in hypotheses_batch:
-        vehicle = hypothesis.split(" like ")[1].split("<")[0].lower()
-        print(vehicle)
-        if is_none_phrase(vehicle) and check_meter(inp, vehicle):
-            simile_phrases.append(" ".join([inp, "like", vehicle]))
-    return list(set(simile_phrases))
-
-
-# In[278]:
-
-
-simile_vehicle("incredible")
-
-
-# In[287]:
-
-
-simile_vehicle("polite")
-
-
-# Ashima TODO: involve the users in this decision process 👆
-
-# In[283]:
+# In[62]:
 
 
 if __name__ == "__main__":
@@ -323,11 +259,7 @@ if __name__ == "__main__":
 
     samples = random.sample(location_dict.keys(), M)
     for ent in samples:
-        simile_phrase = simile_vehicle(ent)
-        print(simile_phrase)
+        vehicle = simile_vehicle(ent)
         location = location_dict[ent]
         polished_lines.append(location[0])
-        four_seasons_story_line[location[0]][location[1]] = simile_phrase
-
-
-# In[ ]:
+        four_seasons_story_line[location[0]][location[1]] = vehicle
