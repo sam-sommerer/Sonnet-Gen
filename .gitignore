@@ -1,5 +1,5 @@
 data
-slurm/
+slurm/logs
 .idea
 */.ipynb_checkpoints
 polish/checkpoint-simile
