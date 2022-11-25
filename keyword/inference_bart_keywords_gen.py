@@ -82,10 +82,16 @@ def generate_keywords(title, model, tokenizer, device):
     first_tercet_bart_input = prompt + title + first_tercet_placeholder
     first_tercet_preds = fill_in_mask(first_tercet_bart_input, model, tokenizer, device)
 
+    print(f"Finished generating first tercet")
+    print(f"first_tercet_preds: {first_tercet_preds}")
+
     #  get keywords for rest of villanelle using first tercet keywords
     placeholder = create_villanelle_keyword_masks(first_tercet_preds[0])
     bart_input = prompt + title + placeholder
     preds = fill_in_mask(bart_input, model, tokenizer)
+
+    print(f"Finished generating final preds")
+    print(f"preds: {preds}")
 
     return preds
 
