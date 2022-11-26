@@ -69,8 +69,6 @@ def create_villanelle_keyword_masks(first_tercet):
     num_lines = 19
     result = ""
 
-    result += ". "
-
     first_line_repeat_indices = [0, 5, 11, 17]
     third_line_repeat_indices = [2, 8, 14, 18]
 
