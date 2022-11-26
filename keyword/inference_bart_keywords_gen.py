@@ -86,6 +86,8 @@ def create_villanelle_keyword_masks(first_tercet):
             new_entry = prefix + "['<MASK>', '<MASK>', '<MASK>']"
             result += new_entry
 
+    print(f"villanelle mask: {result}")
+
     return result + " </s>"
 
 
