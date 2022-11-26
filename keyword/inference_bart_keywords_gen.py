@@ -26,7 +26,7 @@ def clean_keywords(keywords_str):
     pattern = r"\s*\.*\s*Keywords\s*\d*\:*\s*\[.*?\]"
     # pattern = r"\s*\.*\s*Keywords\s*\d*\:*\s*\[(.*?)\]"
     keywords_match = re.findall(pattern, keywords_str)
-    print(f"keywords_match: {keywords_match}")
+    # print(f"keywords_match: {keywords_match}")
 
     # keyword_prefix_pattern = r"\s*\.*\s*Keywords\s*\d*:\s*"
     # piped_keywords = re.sub(keyword_prefix_pattern, "|", keywords_match)
