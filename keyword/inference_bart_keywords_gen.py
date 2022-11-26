@@ -62,7 +62,7 @@ def create_villanelle_keyword_masks(first_tercet):
     print(f"\ncreate_villanelle first_tercet: {first_tercet}")
     regex_filter = r"\s*\.*\s*Keywords\s*\d*:\s*"
     first_tercet_filtered = re.sub(regex_filter, "|", first_tercet)
-    first_tercet_split = first_tercet_filtered.split("|")
+    first_tercet_split = first_tercet_filtered.split("|")[1:]
 
     print(f"first_tercet_split: {first_tercet_split}")
 
