@@ -18,6 +18,7 @@ def generate_rhymes(model, keywords, initial_rhyming_lines, countin_rhyming_line
         print(f"word: {word}")
         candidates = get_rhyme_candidates(word, N=30)
         # candidates = pronouncing.rhymes(word)
+        print(f"candidates: {candidates}")
 
         temp = keywords.split(" Keywords")[countin_rhyming_lines[i]].split("'")
         print(f"temp: {temp}")
