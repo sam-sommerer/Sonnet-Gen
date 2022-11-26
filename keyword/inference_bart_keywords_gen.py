@@ -59,9 +59,9 @@ def fill_in_mask(bart_input, model, tokenizer, device):
 
 
 def create_villanelle_keyword_masks(first_tercet):
-    print(f"create_villanelle first_tercet: {first_tercet}")
+    print(f"\ncreate_villanelle first_tercet: {first_tercet}")
     regex_filter = r"\s*\.*\s*Keywords\s*\d*:\s*"
-    first_tercet_filtered = re.sub(regex_filter, "|", first_tercet[:-5])
+    first_tercet_filtered = re.sub(regex_filter, "|", first_tercet)
     first_tercet_split = first_tercet_filtered.split("|")
 
     print(f"first_tercet_split: {first_tercet_split}")
@@ -69,10 +69,10 @@ def create_villanelle_keyword_masks(first_tercet):
     num_lines = 19
     result = ""
 
-    result += ". " + first_tercet[:-4]
+    result += ". "
 
-    first_line_repeat_indices = [5, 11, 17]
-    third_line_repeat_indices = [8, 14, 18]
+    first_line_repeat_indices = [0, 5, 11, 17]
+    third_line_repeat_indices = [2, 8, 14, 18]
 
     for i in range(num_lines):
         prefix = " . Keywords " + str(i + 1) + ": "
@@ -89,7 +89,7 @@ def create_villanelle_keyword_masks(first_tercet):
             new_entry = prefix + "['<MASK>', '<MASK>', '<MASK>']"
             result += new_entry
 
-    print(f"villanelle mask: {result}")
+    print(f"villanelle mask: {result}\n")
 
     return result + " </s>"
 
