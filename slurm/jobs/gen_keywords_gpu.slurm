@@ -6,7 +6,7 @@
 #SBATCH --time=5:00
 #SBATCH --output=/home1/sommerer/dev/applied_nlp/Sonnet-Gen/slurm/logs/R-%x-%j.out
 #SBATCH --partition=gpu
-#SBATCH --gres=gpu:k40:1
+#SBATCH --gres=gpu:v100:1
 
 conda activate sonnet
 
