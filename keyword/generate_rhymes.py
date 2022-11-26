@@ -8,27 +8,30 @@ def get_rhyme_candidates(word, N):
     if len(temp) <= N:
         return temp
     else:
-        return random.sample(temp,N)
+        return random.sample(temp, N)
+
 
 def generate_rhymes(model, keywords):
     for i in range(7):
         # indices for keywords are 1,3,5.
-        word = keywords.split(' Keywords')[initial_rhyming_lines[i]].split("'")[5]
+        word = keywords.split(" Keywords")[initial_rhyming_lines[i]].split("'")[5]
         print(f"word: {word}")
         candidates = get_rhyme_candidates(word, N=30)
-        #candidates = pronouncing.rhymes(word)
+        # candidates = pronouncing.rhymes(word)
 
-        replace_word = keywords.split(' Keywords')[countin_rhyming_lines[i]].split("'")[5]
+        replace_word = keywords.split(" Keywords")[countin_rhyming_lines[i]].split("'")[
+            5
+        ]
         print(f"replace_word: {replace_word}")
 
         mask_input = keywords.replace(replace_word, model.tokenizer.mask_token)
-        result = model(mask_input, top_k = 5000)
-        tokens = [res['token_str'] for res in result]
+        result = model(mask_input, top_k=5000)
+        tokens = [res["token_str"] for res in result]
         found = False
         rhyming_word = ""
         for t in tokens:
             if t in candidates:
-                print('generated rhyme word:', t)
+                print("generated rhyme word:", t)
                 found = True
                 rhyming_word = t
                 break
@@ -36,15 +39,15 @@ def generate_rhymes(model, keywords):
         if not found:
             candidates = [" " + c for c in candidates]
             result = model(mask_input, targets=candidates)
-            tokens = [res['token_str'] for res in result]
+            tokens = [res["token_str"] for res in result]
             for t in tokens:
                 if t in candidates:
-                    print('generated rhyme word:', t)
+                    print("generated rhyme word:", t)
                     found = True
                     rhyming_word = t
                     break
             if not found:
-                print('not found', word)
+                print("not found", word)
 
         if found:
             keywords = keywords.replace(replace_word, rhyming_word)
@@ -53,7 +56,7 @@ def generate_rhymes(model, keywords):
 
 
 if __name__ == "__main__":
-    path = 'facebook/bart-base'
+    path = "facebook/bart-base"
     model = pipeline("fill-mask", model=path)
 
     # zero index
@@ -70,8 +73,4 @@ if __name__ == "__main__":
     example_keywords = "Keywords 1: ['wrong', 'things', 'trade'] . Keywords 2: ['Silhouettes', 'yard', 'bright'] . Keywords 3: ['safe', 'feel', 'cozy'] . Keywords 4: ['air', 'lifted', 'today'] . Keywords 5: ['grounds', 'spirits', 'inhabit'] . Keywords 6: ['mist', 'wrong', 'deeply'] . Keywords 7: ['mind', 'cottage', 'engulfed'] . Keywords 8: ['legs', 'dog', 'tail'] . Keywords 9: ['reached', 'house', 'cold'] . Keywords 10: ['silence', 'air', 'shook'] . Keywords 11: ['rumble', 'thunder', 'localized'] . Keywords 12: ['animal', 'slumber', 'horrible'] . Keywords 13: ['cottage', 'glance', 'dashed'] . Keywords 14: ['ran', 'life', 'cabin'] </s>"
 
     rhyming_keywords = generate_rhymes(model=model, keywords=example_keywords)
-    print('Generated rhyme words; ', rhyming_keywords, sep='\n')
-
-
-
-
+    print("Generated rhyme words; ", rhyming_keywords, sep="\n")
