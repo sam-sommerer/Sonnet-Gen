@@ -11,7 +11,7 @@ def get_rhyme_candidates(word, N):
         return random.sample(temp, N)
 
 
-def generate_rhymes(model, keywords):
+def generate_rhymes(model, keywords, initial_rhyming_lines, countin_rhyming_lines):
     for i in range(7):
         # indices for keywords are 1,3,5.
         word = keywords.split(" Keywords")[initial_rhyming_lines[i]].split("'")[5]
@@ -19,9 +19,7 @@ def generate_rhymes(model, keywords):
         candidates = get_rhyme_candidates(word, N=30)
         # candidates = pronouncing.rhymes(word)
 
-        replace_word = keywords.split(" Keywords")[countin_rhyming_lines[i]].split("'")[
-            5
-        ]
+        replace_word = keywords.split(" Keywords")[countin_rhyming_lines[i]].split("'")[5]
         print(f"replace_word: {replace_word}")
 
         mask_input = keywords.replace(replace_word, model.tokenizer.mask_token)
@@ -64,13 +62,13 @@ if __name__ == "__main__":
     # countin_rhyming_lines = [2,3,6,7,10,11,13]
 
     # A1 b A2 / a b A1 / a b A2 / a b A1 / a b A2 / a b A1 A2
-    a_rhyming_lines = [3, 6, 9, 12, 15]
-    b_rhyming_lines = [1, 4, 7, 10, 13, 16]
+    # a_rhyming_lines = [3, 6, 9, 12, 15]
+    # b_rhyming_lines = [1, 4, 7, 10, 13, 16]
 
     initial_rhyming_lines = [3, 6, 9, 12, 1, 4, 7, 10, 13]
     countin_rhyming_lines = [6, 9, 12, 15, 4, 7, 10, 13, 16]
 
     example_keywords = "Keywords 1: ['wrong', 'things', 'trade'] . Keywords 2: ['Silhouettes', 'yard', 'bright'] . Keywords 3: ['safe', 'feel', 'cozy'] . Keywords 4: ['air', 'lifted', 'today'] . Keywords 5: ['grounds', 'spirits', 'inhabit'] . Keywords 6: ['mist', 'wrong', 'deeply'] . Keywords 7: ['mind', 'cottage', 'engulfed'] . Keywords 8: ['legs', 'dog', 'tail'] . Keywords 9: ['reached', 'house', 'cold'] . Keywords 10: ['silence', 'air', 'shook'] . Keywords 11: ['rumble', 'thunder', 'localized'] . Keywords 12: ['animal', 'slumber', 'horrible'] . Keywords 13: ['cottage', 'glance', 'dashed'] . Keywords 14: ['ran', 'life', 'cabin'] </s>"
 
-    rhyming_keywords = generate_rhymes(model=model, keywords=example_keywords)
+    rhyming_keywords = generate_rhymes(model=model, keywords=example_keywords, initial_rhyming_lines=initial_rhyming_lines, countin_rhyming_lines=countin_rhyming_lines)
     print("Generated rhyme words; ", rhyming_keywords, sep="\n")
