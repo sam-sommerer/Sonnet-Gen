@@ -42,7 +42,7 @@ def generate_rhymes(model, keywords, initial_rhyming_lines, countin_rhyming_line
                 break
 
         if not found:
-            candidates_target_str = [" " + c for c in candidates_target_str]
+            candidates_target_str = [" " + c for c in candidates]
             result = model(mask_input, targets=candidates_target_str)
             tokens = [res["token_str"] for res in result]
             for t in tokens:
@@ -53,7 +53,9 @@ def generate_rhymes(model, keywords, initial_rhyming_lines, countin_rhyming_line
                     break
             if not found:
                 rhyming_word = random.choice(candidates)
-                print(f"couldn't generate rhyme with {word}, using {rhyming_word} from candidates instead")
+                print(
+                    f"couldn't generate rhyme with {word}, using {rhyming_word} from candidates instead"
+                )
 
         keywords = keywords.replace(replace_word, rhyming_word)
 
