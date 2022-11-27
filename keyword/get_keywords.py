@@ -85,14 +85,22 @@ if __name__ == "__main__":
     # for i in news[:10]:
     #     print(i)
 
-    tokens, sentences, paragraphs, filtered_stories, filtered_prompts, count = filter_input(news, headlines)
+    (
+        tokens,
+        sentences,
+        paragraphs,
+        filtered_stories,
+        filtered_prompts,
+        count,
+    ) = filter_input(news, headlines)
 
     print(count)
     print("average tokens of story:", np.mean(tokens))
     print("average sentences of story:", np.mean(sentences))
     print("average tokens per sentence:", np.mean(tokens) / np.mean(sentences))
 
-    print(f"len(filtered_stories), len(filtered_prompts): {len(filtered_stories)}, {len(filtered_prompts)}")
+    print(
+        f"len(filtered_stories), len(filtered_prompts): {len(filtered_stories)}, {len(filtered_prompts)}"
+    )
 
     get_and_dump_keywords(filtered_stories, filtered_prompts)
-

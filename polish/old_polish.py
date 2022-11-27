@@ -196,12 +196,13 @@ t = 0.7
 
 # In[ ]:
 
+
 def check_meter(adj, vehicle):
     phone = pronouncing.phones_for_word(adj)[0]
     stress_adj = get_stress(phone)
-    vehicle = vehicle.strip(',.<>')
+    vehicle = vehicle.strip(",.<>")
     try:
-        if len(vehicle.split())==1:
+        if len(vehicle.split()) == 1:
             phone = pronouncing.phones_for_word(vehicle)[0]
             stress_vehicle = get_stress(phone)
         else:
@@ -209,8 +210,8 @@ def check_meter(adj, vehicle):
             for word in vehicle.split():
                 phone = pronouncing.phones_for_word(word)[0]
                 stress_vehicle += get_stress(phone)
-        #assume 'like' can be either stressed or unstressed
-        if stress_vehicle[0]==stress_adj[-1] and alternating(stress_vehicle):
+        # assume 'like' can be either stressed or unstressed
+        if stress_vehicle[0] == stress_adj[-1] and alternating(stress_vehicle):
             return True
     except:
         pass

@@ -119,7 +119,9 @@ def generate_next_word(input_ids1, temperature=0.85, topk=100, device="cuda:0"):
 
         next_token_logits = next_token_logits1 * temperature
         probs = F.softmax(next_token_logits, dim=-1)
-        next_tokens = torch.multinomial(probs, num_samples=1).squeeze(1)  # sampling next tokens from distribution
+        next_tokens = torch.multinomial(probs, num_samples=1).squeeze(
+            1
+        )  # sampling next tokens from distribution
         # unfinished_sents = torch.ones(1, dtype=torch.long, device=device)
         unfinished_sents = torch.ones(1, dtype=torch.long).cuda()
         tokens_to_add = next_tokens * unfinished_sents + tokenizer.pad_token_id * (
