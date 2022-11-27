@@ -72,7 +72,9 @@ if __name__ == "__main__":
     # a_rhyming_lines = [3, 6, 9, 12, 15]
     # b_rhyming_lines = [1, 4, 7, 10, 13, 16]
 
-    initial_rhyming_lines = [3, 6, 9, 12, 1, 4, 7, 10, 13]
+    # initial_rhyming_lines = [3, 6, 9, 12, 1, 4, 7, 10, 13]
+    initial_rhyming_lines = [3, 3, 3, 3, 1, 1, 1, 1, 1]
+    # countin_rhyming_lines = [6, 9, 12, 15, 4, 7, 10, 13, 16]
     countin_rhyming_lines = [6, 9, 12, 15, 4, 7, 10, 13, 16]
 
     # example_keywords = "Keywords 1: ['wrong', 'things', 'trade'] . Keywords 2: ['Silhouettes', 'yard', 'bright'] . Keywords 3: ['safe', 'feel', 'cozy'] . Keywords 4: ['air', 'lifted', 'today'] . Keywords 5: ['grounds', 'spirits', 'inhabit'] . Keywords 6: ['mist', 'wrong', 'deeply'] . Keywords 7: ['mind', 'cottage', 'engulfed'] . Keywords 8: ['legs', 'dog', 'tail'] . Keywords 9: ['reached', 'house', 'cold'] . Keywords 10: ['silence', 'air', 'shook'] . Keywords 11: ['rumble', 'thunder', 'localized'] . Keywords 12: ['animal', 'slumber', 'horrible'] . Keywords 13: ['cottage', 'glance', 'dashed'] . Keywords 14: ['ran', 'life', 'cabin'] </s>"
