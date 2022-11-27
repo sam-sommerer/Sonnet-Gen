@@ -10,23 +10,6 @@ import warnings
 
 warnings.filterwarnings("ignore")
 
-# Download Finetuned GPT-Neo
-# Set the random seed to a fixed value to get reproducible results
-torch.manual_seed(42)
-tokenizer = GPT2Tokenizer.from_pretrained(
-    "EleutherAI/gpt-neo-1.3B",
-    bos_token="<|startoftext|>",
-    eos_token="<|endoftext|>",
-    pad_token="<|pad|>",
-)
-
-# Download the pre-trained GPT-Neo model and transfer it to the GPU
-model = GPTNeoForCausalLM.from_pretrained(
-    "FigoMe/news-gpt-neo-1.3B-keywords-line-by-line-reverse"
-).cuda()
-# Resize the token embeddings because we've just added 3 new tokens
-model.resize_token_embeddings(len(tokenizer))
-
 
 def get_stress(phone):
     stress = []
@@ -65,7 +48,7 @@ def top_k_top_p_filtering(
     filter_value: float = -float("Inf"),
     min_tokens_to_keep: int = 1,
     return_index=False,
-) -> Tensor:
+):
     """Filter a distribution of logits using top-k and/or nucleus (top-p) filtering
     Args:
         logits: logits distribution shape (batch size, vocabulary size)
@@ -83,6 +66,9 @@ def top_k_top_p_filtering(
         indices_keep = indices_keep[0].tolist()
         indices_keep = [i for i, x in enumerate(indices_keep) if x == True]
         logits[indices_to_remove] = filter_value
+
+        if return_index:
+            return logits, indices_keep
 
     if top_p < 1.0:
         sorted_logits, sorted_indices = torch.sort(logits, descending=True)
@@ -102,13 +88,14 @@ def top_k_top_p_filtering(
             -1, sorted_indices, sorted_indices_to_remove
         )
         logits[indices_to_remove] = filter_value
-    if return_index == True:
-        return logits, indices_keep
+
+    # if return_index:
+    #     return logits, indices_keep
     return logits
 
 
 #  generates the next 10 words (assuming eos token isn't generated first) given an input_id
-def generate_next_word(input_ids1, temperature=0.85, topk=100, device="cuda:0"):
+def generate_next_word(model, input_ids1, temperature=0.85, topk=100, device="cuda:0"):
     current_word = 0
     for _ in range(10):
         outputs1 = model(input_ids1)
@@ -171,7 +158,7 @@ def get_valid_samples(prompt, p_state, n_syllables, keywords):
     input_ids = tokenizer(prompt, return_tensors="pt").input_ids.cuda()
     tokens = []
     while len(tokens) < 3:
-        token, eos = generate_next_word(input_ids)
+        token, eos = generate_next_word(model, input_ids)
         if (token not in tokens) and (token not in keywords):
             # print(token, tokens)
             try:
@@ -214,12 +201,8 @@ def reverse_order(line):
     return " ".join(reversed(words)).replace(" , ", ", ")
 
 
-device = "cuda:0"
-score_model = model
-
-
-def myBeamSearch(true_beams, beam_size=5):
-    BeamScorer = {}
+def beam_search(score_model, true_beams, beam_size=5):
+    beam_scorer = {}
     for sentence in true_beams:
         tokenize_input = tokenizer.tokenize(sentence)
         tensor_input = torch.tensor([tokenizer.convert_tokens_to_ids(tokenize_input)])
@@ -227,11 +210,11 @@ def myBeamSearch(true_beams, beam_size=5):
         tensor_input = tensor_input.to(device)
         loss = score_model(tensor_input, labels=tensor_input)
         avg_lp = torch.tensor(-loss[0].item() / len(tokenize_input))
-        BeamScorer[sentence] = avg_lp
-    BeamScorer = {
-        k: v for k, v in sorted(BeamScorer.items(), key=lambda x: x[1], reverse=True)
+        beam_scorer[sentence] = avg_lp
+    beam_scorer = {
+        k: v for k, v in sorted(beam_scorer.items(), key=lambda x: x[1], reverse=True)
     }
-    return list(BeamScorer.keys())[:beam_size]
+    return list(beam_scorer.keys())[:beam_size]
 
 
 def gen_recursion(prompt, p_state, n_syllables, keywords, beam_size):
@@ -247,7 +230,7 @@ def gen_recursion(prompt, p_state, n_syllables, keywords, beam_size):
         # print(f'len of results list: {len(result_list)}')
         if len(result_list) > 0:
             # print('Going in Beam Search')
-            result_list = myBeamSearch(result_list, beam_size=beam_size)
+            result_list = beam_search(score_model, result_list, beam_size=beam_size)
             # print(result_list)
         return result_list
     prompts, states, all_n_sys, all_keywords = get_valid_samples(
@@ -262,61 +245,81 @@ def gen_recursion(prompt, p_state, n_syllables, keywords, beam_size):
     #     gen_recursion(prompt,p_state, n_syllables, keywords)
 
 
-four_seasons_story_line = [
-    ["snow", "falling", "future"],
-    ["winter", "is", "coming"],
-    ["gather", "honest", "humor"],
-    ["spring", "happy", "blooming"],
-    ["air", "heat", "warm"],
-    ["little", "birds", "may"],
-    ["flowers", "leaves", "storm"],
-    ["summer", "moon", "day"],
-    ["blue", "sky", "clouds"],
-    ["sudden", "rain", "thunder"],
-    ["Summer", "fill", "crowds"],
-    ["Spring", "no", "wonder"],
-    ["seasons", "years", "keep"],
-    ["future", "months", "reap"],
-]
-
-
-test_story = [
-    ["computer", "scientists", "meetings"],
-    ["years", "ago", "time"],
-    ["today", "day", "dressings"],
-    ["work", "lunch", "crime"],
-    ["couple", "hours", "weeks"],
-    ["happened", "n’t", "remember"],
-    ["people", "talked", "leaks"],
-    ["things", "wanted", "member"],
-    ["answer", "told", "give"],
-    ["confused", "thought", "stopped"],
-    ["room", "looked", "live"],
-    ["table", "sat", "cropped"],  # random words for rhyme scheme throw error
-    ["screaming", "finally", "stood"],
-    ["closer", "heard", "good"],
-]
-
-example_title = "A Computer Scientist Meeting"
-
-previous = ""
-for kws in tqdm(test_story):
-    # kws = four_seasons_story_line[2]
-    print(kws)
-    rhyme_word = kws[-1]
-    prefix = """Keywords: """ + "; ".join(kws) + ". Sentence in reverse order: "
-    prompt = (
-        """<|startoftext|> Title: """
-        + example_title
-        + " "
-        + previous
-        + prefix
-        + rhyme_word
+if __name__ == "__main__":
+    # Download Finetuned GPT-Neo
+    # Set the random seed to a fixed value to get reproducible results
+    torch.manual_seed(42)
+    tokenizer = GPT2Tokenizer.from_pretrained(
+        "EleutherAI/gpt-neo-1.3B",
+        bos_token="<|startoftext|>",
+        eos_token="<|endoftext|>",
+        pad_token="<|pad|>",
     )
-    p_state, n_syllables = get_phones(rhyme_word)
-    result_list = []
-    # to add hard constraints, specify keywords, otherwise use = []
-    gen_recursion(prompt, p_state, n_syllables, keywords=[], beam_size=5)
-    previous = previous + result_list[0] + ","
 
-print(previous)
+    # Download the pre-trained GPT-Neo model and transfer it to the GPU
+    model = GPTNeoForCausalLM.from_pretrained(
+        "FigoMe/news-gpt-neo-1.3B-keywords-line-by-line-reverse"
+    ).cuda()
+    # Resize the token embeddings because we've just added 3 new tokens
+    model.resize_token_embeddings(len(tokenizer))
+
+    device = "cuda:0"
+    score_model = model
+
+    four_seasons_story_line = [
+        ["snow", "falling", "future"],
+        ["winter", "is", "coming"],
+        ["gather", "honest", "humor"],
+        ["spring", "happy", "blooming"],
+        ["air", "heat", "warm"],
+        ["little", "birds", "may"],
+        ["flowers", "leaves", "storm"],
+        ["summer", "moon", "day"],
+        ["blue", "sky", "clouds"],
+        ["sudden", "rain", "thunder"],
+        ["Summer", "fill", "crowds"],
+        ["Spring", "no", "wonder"],
+        ["seasons", "years", "keep"],
+        ["future", "months", "reap"],
+    ]
+
+    test_story = [
+        ["computer", "scientists", "meetings"],
+        ["years", "ago", "time"],
+        ["today", "day", "dressings"],
+        ["work", "lunch", "crime"],
+        ["couple", "hours", "weeks"],
+        ["happened", "n’t", "remember"],
+        ["people", "talked", "leaks"],
+        ["things", "wanted", "member"],
+        ["answer", "told", "give"],
+        ["confused", "thought", "stopped"],
+        ["room", "looked", "live"],
+        ["table", "sat", "cropped"],  # random words for rhyme scheme throw error
+        ["screaming", "finally", "stood"],
+        ["closer", "heard", "good"],
+    ]
+
+    example_title = "A Computer Scientist Meeting"
+
+    previous = ""
+    for kws in tqdm(test_story):
+        # kws = four_seasons_story_line[2]
+        print(kws)
+        rhyme_word = kws[-1]
+        prefix = """Keywords: """ + "; ".join(kws) + ". Sentence in reverse order: "
+        prompt = (
+                """<|startoftext|> Title: """
+                + example_title
+                + " "
+                + previous
+                + prefix
+                + rhyme_word
+        )
+        p_state, n_syllables = get_phones(rhyme_word)
+        result_list = []
+        # to add hard constraints, specify keywords, otherwise use = []
+        gen_recursion(prompt, p_state, n_syllables, keywords=[], beam_size=5)
+        previous = previous + result_list[0] + ","
+
+    print(previous)
