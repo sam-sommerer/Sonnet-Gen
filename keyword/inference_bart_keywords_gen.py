@@ -92,6 +92,33 @@ def create_villanelle_keyword_masks(first_tercet):
     return result + " </s>"
 
 
+def format_final_output(preds):
+    print(f"\ncreate_villanelle first_tercet: {preds}")
+    regex_filter = r"\s*\.*\s*Keywords\s*\d*:\s*"
+    preds_filtered = re.sub(regex_filter, "|", preds)
+    preds_split = preds_filtered.split("|")[1:]
+
+    first_line_repeat_indices = [0, 5, 11, 17]
+    third_line_repeat_indices = [2, 8, 14, 18]
+
+    num_lines = 19
+    result = ""
+
+    for i in range(num_lines):
+        prefix = "Keywords " + str(i + 1) + ": "
+        if i in first_line_repeat_indices:
+            new_entry = prefix + preds_split[0]
+            result += new_entry
+        elif i in third_line_repeat_indices:
+            new_entry = prefix + preds_split[2]
+            result += new_entry
+        else:
+            new_entry = prefix + preds_split[i]
+            result += new_entry
+
+    return result
+
+
 def generate_keywords(title, model, tokenizer, device):
     print(f"generating keywords...")
 
@@ -133,4 +160,7 @@ if __name__ == "__main__":
 
     title = "The Four Seasons"
 
-    generate_keywords(title, model, tokenizer, device)
+    preds = generate_keywords(title, model, tokenizer, device)
+    formatted_preds = format_final_output(preds[0])
+
+    print(f"\nformatted_preds: {formatted_preds}")

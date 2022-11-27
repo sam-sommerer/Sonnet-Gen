@@ -309,12 +309,12 @@ if __name__ == "__main__":
         rhyme_word = kws[-1]
         prefix = """Keywords: """ + "; ".join(kws) + ". Sentence in reverse order: "
         prompt = (
-                """<|startoftext|> Title: """
-                + example_title
-                + " "
-                + previous
-                + prefix
-                + rhyme_word
+            """<|startoftext|> Title: """
+            + example_title
+            + " "
+            + previous
+            + prefix
+            + rhyme_word
         )
         p_state, n_syllables = get_phones(rhyme_word)
         result_list = []
