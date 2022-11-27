@@ -105,7 +105,7 @@ def format_final_output(preds):
     result = ""
 
     for i in range(num_lines):
-        prefix = "Keywords " + str(i + 1) + ": "
+        prefix = " Keywords " + str(i + 1) + ": "
         if i in first_line_repeat_indices:
             new_entry = prefix + preds_split[0]
             result += new_entry
@@ -116,7 +116,7 @@ def format_final_output(preds):
             new_entry = prefix + preds_split[i]
             result += new_entry
 
-    return result
+    return result[1:]
 
 
 def generate_keywords(title, model, tokenizer, device):
