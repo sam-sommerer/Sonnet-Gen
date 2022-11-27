@@ -42,20 +42,20 @@ def generate_rhymes(model, keywords, initial_rhyming_lines, countin_rhyming_line
                 break
 
         if not found:
-            candidates = [" " + c for c in candidates]
-            result = model(mask_input, targets=candidates)
+            candidates_target_str = [" " + c for c in candidates_target_str]
+            result = model(mask_input, targets=candidates_target_str)
             tokens = [res["token_str"] for res in result]
             for t in tokens:
-                if t in candidates:
+                if t in candidates_target_str:
                     print("generated rhyme word:", t)
                     found = True
                     rhyming_word = t
                     break
             if not found:
-                print("not found", word)
+                rhyming_word = random.choice(candidates)
+                print(f"couldn't generate rhyme with {word}, using {rhyming_word} from candidates instead")
 
-        if found:
-            keywords = keywords.replace(replace_word, rhyming_word)
+        keywords = keywords.replace(replace_word, rhyming_word)
 
     return keywords
 
