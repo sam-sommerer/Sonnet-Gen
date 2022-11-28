@@ -95,6 +95,7 @@ def top_k_top_p_filtering(
 
 #  generates the next 10 words (assuming eos token isn't generated first) given an input_id
 def generate_next_word(model, input_ids1, temperature=0.85, topk=100, device="cuda:0"):
+    print(f"enters generate_next_word")
     current_word = 0
     for _ in range(10):
         outputs1 = model(input_ids1)
@@ -156,6 +157,7 @@ def get_valid_samples(model, prompt, p_state, n_syllables, keywords):
     # The normal process of decoding
     input_ids = tokenizer(prompt, return_tensors="pt").input_ids.cuda()
     tokens = []
+    print(f"gets to valid_sample loop")
     while len(tokens) < 3:
         print(f"input_ids: {input_ids}")
         token, eos = generate_next_word(model, input_ids)
@@ -230,7 +232,7 @@ def gen_recursion(model, prompt, p_state, n_syllables, keywords, beam_size):
         # print(f'len of results list: {len(result_list)}')
         if len(result_list) > 0:
             # print('Going in Beam Search')
-            result_list = beam_search(score_model, result_list, beam_size=beam_size)
+            result_list = beam_search(model, result_list, beam_size=beam_size)
             # print(result_list)
         return result_list
     prompts, states, all_n_sys, all_keywords = get_valid_samples(
@@ -239,7 +241,9 @@ def gen_recursion(model, prompt, p_state, n_syllables, keywords, beam_size):
     print(prompts)
     # prune the recursion tree by randomly selecting one prompt to decode, this speeds up the example for demo but compromises diversity
     k = random.randint(0, len(prompts))
-    gen_recursion(model, prompts[0], states[0], all_n_sys[0], all_keywords[0], beam_size)
+    gen_recursion(
+        model, prompts[0], states[0], all_n_sys[0], all_keywords[0], beam_size
+    )
     # original code that explodes recursion exponentially
     # for prompt,p_state, n_syllables, keyword in zip(prompts, states, all_n_sys, all_keywords):
     #     gen_recursion(prompt,p_state, n_syllables, keywords)
@@ -319,7 +323,7 @@ if __name__ == "__main__":
         p_state, n_syllables = get_phones(rhyme_word)
         result_list = []
         # to add hard constraints, specify keywords, otherwise use = []
-        gen_recursion(model, prompt, p_state, n_syllables, keywords=[], beam_size=5)
+        gen_recursion(score_model, prompt, p_state, n_syllables, keywords=[], beam_size=5)
         previous = previous + result_list[0] + ","
 
     print(f"result: {previous}")
