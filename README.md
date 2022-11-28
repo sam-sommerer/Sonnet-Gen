@@ -36,3 +36,5 @@ Please cite our paper if they are helpful to your work !
   - https://github.com/NinaTian98369/HypoGen
     - https://drive.google.com/drive/folders/1aexFfPMD8mRSaq_pQukD8NSTemxp1A0u
 
+`salloc --time=5:00 --partition=gpu --nodes=1 --ntasks=1 --cpus-per-task=8 --mem=16GB --gres=gpu:v100:1`
+

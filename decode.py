@@ -129,7 +129,7 @@ def generate_next_word(model, input_ids1, temperature=0.85, topk=100, device="cu
     return None
 
 
-def get_valid_samples(prompt, p_state, n_syllables, keywords):
+def get_valid_samples(model, prompt, p_state, n_syllables, keywords):
     states = []
     all_n_syl = []
 
@@ -157,6 +157,7 @@ def get_valid_samples(prompt, p_state, n_syllables, keywords):
     input_ids = tokenizer(prompt, return_tensors="pt").input_ids.cuda()
     tokens = []
     while len(tokens) < 3:
+        print(f"input_ids: {input_ids}")
         token, eos = generate_next_word(model, input_ids)
         if (token not in tokens) and (token not in keywords):
             # print(token, tokens)
@@ -216,7 +217,7 @@ def beam_search(score_model, true_beams, beam_size=5):
     return list(beam_scorer.keys())[:beam_size]
 
 
-def gen_recursion(prompt, p_state, n_syllables, keywords, beam_size):
+def gen_recursion(model, prompt, p_state, n_syllables, keywords, beam_size):
     global result_list
     """I modified this criterion to speed up the example.
     I suggest to add non-repeat-unigram (= 3) and keyword checking
@@ -233,12 +234,12 @@ def gen_recursion(prompt, p_state, n_syllables, keywords, beam_size):
             # print(result_list)
         return result_list
     prompts, states, all_n_sys, all_keywords = get_valid_samples(
-        prompt, p_state, n_syllables, keywords
+        model, prompt, p_state, n_syllables, keywords
     )
     print(prompts)
     # prune the recursion tree by randomly selecting one prompt to decode, this speeds up the example for demo but compromises diversity
     k = random.randint(0, len(prompts))
-    gen_recursion(prompts[0], states[0], all_n_sys[0], all_keywords[0], beam_size)
+    gen_recursion(model, prompts[0], states[0], all_n_sys[0], all_keywords[0], beam_size)
     # original code that explodes recursion exponentially
     # for prompt,p_state, n_syllables, keyword in zip(prompts, states, all_n_sys, all_keywords):
     #     gen_recursion(prompt,p_state, n_syllables, keywords)
@@ -318,7 +319,7 @@ if __name__ == "__main__":
         p_state, n_syllables = get_phones(rhyme_word)
         result_list = []
         # to add hard constraints, specify keywords, otherwise use = []
-        gen_recursion(prompt, p_state, n_syllables, keywords=[], beam_size=5)
+        gen_recursion(model, prompt, p_state, n_syllables, keywords=[], beam_size=5)
         previous = previous + result_list[0] + ","
 
     print(f"result: {previous}")
