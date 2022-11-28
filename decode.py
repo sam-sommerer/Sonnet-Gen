@@ -5,6 +5,8 @@ import pronouncing
 from transformers import Trainer, TrainingArguments
 from tqdm import tqdm
 import random
+from torch import Tensor
+from torch.nn import functional as F
 
 import warnings
 
@@ -35,10 +37,6 @@ def get_phones(rhyme_word):
     p_state = stress[0]
     n_syllables = len(stress)
     return p_state, n_syllables
-
-
-from torch import Tensor
-from torch.nn import functional as F
 
 
 def top_k_top_p_filtering(
@@ -79,6 +77,7 @@ def top_k_top_p_filtering(
         if min_tokens_to_keep > 1:
             # Keep at least min_tokens_to_keep (set to min_tokens_to_keep-1 because we add the first one below)
             sorted_indices_to_remove[..., :min_tokens_to_keep] = 0
+        # Shift the indices to the right to keep also the first token above the threshold
         # Shift the indices to the right to keep also the first token above the threshold
         sorted_indices_to_remove[..., 1:] = sorted_indices_to_remove[..., :-1].clone()
         sorted_indices_to_remove[..., 0] = 0
@@ -305,7 +304,7 @@ if __name__ == "__main__":
     previous = ""
     for kws in tqdm(test_story):
         # kws = four_seasons_story_line[2]
-        print(kws)
+        print(f"keyword: {kws}")
         rhyme_word = kws[-1]
         prefix = """Keywords: """ + "; ".join(kws) + ". Sentence in reverse order: "
         prompt = (
@@ -322,4 +321,4 @@ if __name__ == "__main__":
         gen_recursion(prompt, p_state, n_syllables, keywords=[], beam_size=5)
         previous = previous + result_list[0] + ","
 
-    print(previous)
+    print(f"result: {previous}")
