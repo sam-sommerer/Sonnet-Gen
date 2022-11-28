@@ -131,6 +131,8 @@ def generate_next_word(model, input_ids1, temperature=0.85, topk=100, device="cu
 
 
 def get_valid_samples(model, prompt, p_state, n_syllables, keywords):
+    print(f"enters_valid_samples")
+    print(f"\tkeywords: {keywords}")
     states = []
     all_n_syl = []
 
@@ -323,7 +325,9 @@ if __name__ == "__main__":
         p_state, n_syllables = get_phones(rhyme_word)
         result_list = []
         # to add hard constraints, specify keywords, otherwise use = []
-        gen_recursion(score_model, prompt, p_state, n_syllables, keywords=[], beam_size=5)
+        gen_recursion(
+            score_model, prompt, p_state, n_syllables, keywords=[], beam_size=5
+        )
         previous = previous + result_list[0] + ","
 
     print(f"result: {previous}")
