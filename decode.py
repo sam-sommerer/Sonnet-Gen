@@ -118,7 +118,8 @@ def generate_next_word(model, input_ids1, temperature=0.85, topk=100, device="cu
 
         if tokenizer.eos_token_id in next_tokens[0]:
             input_ids1 = torch.cat([input_ids1, tokens_to_add.unsqueeze(-1)], dim=-1)
-            return "", True
+            # return "", True
+            return tokenizer.decode(input_ids1[0]).split()[-1], True
 
         #  what does this do? exit early if two spaces are generated in a row?
         if tokenizer.decode(tokens_to_add[0])[0] == " ":
@@ -128,7 +129,8 @@ def generate_next_word(model, input_ids1, temperature=0.85, topk=100, device="cu
             current_word += 1
 
         input_ids1 = torch.cat([input_ids1, tokens_to_add.unsqueeze(-1)], dim=-1)
-    return None
+    # return None
+    return tokenizer.decode(input_ids1[0]).split()[-1], False
 
 
 def get_valid_samples(model, prompt, p_state, n_syllables, keywords):
