@@ -95,10 +95,10 @@ def top_k_top_p_filtering(
 
 #  generates the next 10 words (assuming eos token isn't generated first) given an input_id
 def generate_next_word(model, input_ids1, temperature=0.85, topk=100, device="cuda:0"):
-    print(f"enters generate_next_word")
+    # print(f"enters generate_next_word")
     current_word = 0
     for i in range(10):
-        print(f"\t iteration i: {i}")
+        # print(f"\t iteration i: {i}")
         outputs1 = model(input_ids1)
         next_token_logits1 = outputs1[0][:, -1, :]
         next_token_logits1 = top_k_top_p_filtering(next_token_logits1, top_k=topk)
@@ -149,9 +149,9 @@ def get_valid_samples(model, prompt, p_state, n_syllables, keywords):
             continue
 
         # if the word is single syllable and can be either stressed or unstressed, flag = True
-        flag = check_either_stress(stress, source_word)
+        can_be_stressed_or_unstressed = check_either_stress(stress, source_word)
 
-        if stress[-1] == 1 - p_state or flag:
+        if stress[-1] == 1 - p_state or can_be_stressed_or_unstressed:
             states.append(stress[0])
             all_n_syl.append(n_syllables + len(stress))
             prompts.append(prompt + " " + source_word)
@@ -162,10 +162,10 @@ def get_valid_samples(model, prompt, p_state, n_syllables, keywords):
     # The normal process of decoding
     input_ids = tokenizer(prompt, return_tensors="pt").input_ids.cuda()
     tokens = []
-    print(f"gets to valid_sample loop")
+    # print(f"gets to valid_sample loop")
     while len(tokens) < 3:
         print(f"\ttokens: {tokens}")
-        print(f"\tinput_ids: {input_ids}")
+        # print(f"\tinput_ids: {input_ids}")
         token, eos = generate_next_word(model, input_ids)
         if (token not in tokens) and (token not in keywords):
             # print(token, tokens)
@@ -176,9 +176,9 @@ def get_valid_samples(model, prompt, p_state, n_syllables, keywords):
                     continue
 
                 # if the word is single syllable and can be either stressed or unstressed, flag = True
-                flag = check_either_stress(stress, token)
+                can_be_stressed_or_unstressed = check_either_stress(stress, token)
 
-                if stress[-1] == 1 - p_state or flag:
+                if stress[-1] == 1 - p_state or can_be_stressed_or_unstressed:
                     tokens.append(token)
                     states.append(stress[0])
                     all_n_syl.append(n_syllables + len(stress))
@@ -209,14 +209,14 @@ def reverse_order(line):
     return " ".join(reversed(words)).replace(" , ", ", ")
 
 
-def beam_search(score_model, true_beams, beam_size=5):
+def beam_search(model, true_beams, beam_size=5):
     beam_scorer = {}
     for sentence in true_beams:
         tokenize_input = tokenizer.tokenize(sentence)
         tensor_input = torch.tensor([tokenizer.convert_tokens_to_ids(tokenize_input)])
 
         tensor_input = tensor_input.to(device)
-        loss = score_model(tensor_input, labels=tensor_input)
+        loss = model(tensor_input, labels=tensor_input)
         avg_lp = torch.tensor(-loss[0].item() / len(tokenize_input))
         beam_scorer[sentence] = avg_lp
     beam_scorer = {
@@ -233,7 +233,6 @@ def gen_recursion(model, prompt, p_state, n_syllables, keywords, beam_size):
     if n_syllables >= 10:
         line = prompt.split(": ")[-1]
         reversed_words = reverse_order(line)
-        reversed_words = reversed_words
         result_list.append(reversed_words)
         # print(f'len of results list: {len(result_list)}')
         if len(result_list) > 0:
