@@ -8,10 +8,12 @@
 #SBATCH --gres=gpu:v100:1
 #SBATCH --output=/home1/sommerer/dev/applied_nlp/Sonnet-Gen/slurm/logs/R-%x-%j.out
 
+conda activate sonnet
+
+#module load cuda/11.7
 module purge
-module load conda
+#module load conda
 module load nvidia-hpc-sdk
 
-conda activate sonnet
 
 python /home1/sommerer/dev/applied_nlp/Sonnet-Gen/decode.py

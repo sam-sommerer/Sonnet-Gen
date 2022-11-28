@@ -5,3 +5,4 @@ polish/checkpoint-simile
 polish/pretrained_models
 */.DS_Store
 slurm/logs/*
+./*.txt
