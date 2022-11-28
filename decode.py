@@ -97,7 +97,8 @@ def top_k_top_p_filtering(
 def generate_next_word(model, input_ids1, temperature=0.85, topk=100, device="cuda:0"):
     print(f"enters generate_next_word")
     current_word = 0
-    for _ in range(10):
+    for i in range(10):
+        print(f"\t iteration i: {i}")
         outputs1 = model(input_ids1)
         next_token_logits1 = outputs1[0][:, -1, :]
         next_token_logits1 = top_k_top_p_filtering(next_token_logits1, top_k=topk)
