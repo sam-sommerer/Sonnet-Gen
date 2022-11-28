@@ -3,6 +3,7 @@ data
 */.ipynb_checkpoints
 polish/checkpoint-simile
 polish/pretrained_models
+sonnet_venv
 */.DS_Store
 slurm/logs/*
 ./*.txt
