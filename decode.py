@@ -248,14 +248,14 @@ def gen_recursion(model, prompt, p_state, n_syllables, keywords, beam_size):
             # print(result_list)
             print(f"\tlen(result_list) after beam search: {len(result_list)}")
         print(f"\tresult_list before return: {result_list}")
-        return result_list[0]
+        return result_list
     prompts, states, all_n_sys, all_keywords = get_valid_samples(
         model, prompt, p_state, n_syllables, keywords
     )
     print(prompts)
     # prune the recursion tree by randomly selecting one prompt to decode, this speeds up the example for demo but compromises diversity
     k = random.randint(0, len(prompts))
-    gen_recursion(
+    return gen_recursion(
         model,
         prompts[0],
         states[0],
@@ -306,6 +306,7 @@ def gen_villanelle(model, keywords_arr):
                 beam_size=5,
                 # result_list=[],
             )
+            # print("type: ")
             print(f"result_list: {result_list}")
             result = result + result_list[0] + ","
 
