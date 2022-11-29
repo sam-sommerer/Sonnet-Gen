@@ -180,6 +180,7 @@ def get_valid_samples(model, prompt, p_state, n_syllables, keywords):
                 can_be_stressed_or_unstressed = check_either_stress(stress, token)
 
                 if stress[-1] == 1 - p_state or can_be_stressed_or_unstressed:
+                    print(f"\t\tadding token: {token}")
                     tokens.append(token)
                     states.append(stress[0])
                     all_n_syl.append(n_syllables + len(stress))
