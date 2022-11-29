@@ -301,7 +301,7 @@ def gen_villanelle(model, keywords_arr):
                 beam_size=5,
                 result_list=[],
             )
-            print(f"result: {result}")
+            print(f"result_list: {result_list}")
             result = result + result_list[0] + ","
 
         if i == 0:
