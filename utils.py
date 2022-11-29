@@ -1,4 +1,5 @@
 import re
+import ast
 import argparse
 
 
@@ -7,7 +8,8 @@ def convert_keywords_string_to_list(keywords_str):
     keywords_filtered = re.sub(regex_filter, "|", keywords_str)
     keywords_split = keywords_filtered.split("|")[1:]
 
-    return keywords_split
+    # return keywords_split
+    return [ast.literal_eval(keyword_set) for keyword_set in keywords_split]
 
 
 if __name__ == "__main__":
