@@ -256,6 +256,48 @@ def gen_recursion(model, prompt, p_state, n_syllables, keywords, beam_size):
     #     gen_recursion(prompt,p_state, n_syllables, keywords)
 
 
+def gen_villanelle(model, keywords_arr):
+    result = ""
+    first_line_repeat_indices = [5, 11, 17]
+    first_line_repeat = ""
+    third_line_repeat_indices = [8, 14, 18]
+    third_line_repeat = ""
+    for i, kws in enumerate(tqdm(keywords_arr)):
+        # kws = four_seasons_story_line[2]
+        print(f"keyword {i + 1}: {kws}")
+
+        if i in first_line_repeat_indices:
+            result += first_line_repeat + ","
+        elif i in third_line_repeat_indices:
+            result += third_line_repeat + ","
+        else:
+            rhyme_word = kws[-1]
+            prefix = """Keywords: """ + "; ".join(kws) + ". Sentence in reverse order: "
+            prompt = (
+                    """<|startoftext|> Title: """
+                    + example_title
+                    + " "
+                    + result
+                    + prefix
+                    + rhyme_word
+            )
+            p_state, n_syllables = get_phones(rhyme_word)
+            result_list = []
+            # to add hard constraints, specify keywords, otherwise use = []
+            gen_recursion(
+                model, prompt, p_state, n_syllables, keywords=[], beam_size=5
+            )
+            result = result + result_list[0] + ","
+
+        if i == 0:
+            first_line_repeat = result_list[0]
+
+        if i == 2:
+            third_line_repeat = result_list[0]
+
+    return result
+
+
 if __name__ == "__main__":
     # Download Finetuned GPT-Neo
     # Set the random seed to a fixed value to get reproducible results
@@ -311,28 +353,34 @@ if __name__ == "__main__":
         ["closer", "heard", "good"],
     ]
 
+    #  not rhymed
+    #  Keywords 1: ['years', 'time', 'ago'] Keywords 2: ['life', 'happened', 'finally'] Keywords 3: ['family', 'love', 'wanted'] Keywords 4: ['year', 'long', 'lived'] Keywords 5: ['day', 'couple','months'] Keywords 6: ['years', 'time', 'ago'] Keywords 7: ['night', 'n’t','sleep'] Keywords 8: ['bed', 'felt', 'cold'] Keywords 9: ['family', 'love', 'wanted'] Keywords 10: ['window','staring', 'darkness'] Keywords 11: ['doorway', 'heard','screaming'] Keywords 12: ['years', 'time', 'ago'] Keywords 13: ['floor','slowly', 'walked'] Keywords 14: ['bedroom', 'closet', 'turned'] Keywords 15: ['family', 'love', 'wanted'] Keywords 16: ['smiled', 'told', 'goodbye'] Keywords 17: ['face', 'laughed', 'gave'] Keywords 18: ['years', 'time', 'ago'] Keywords 19: ['family', 'love', 'wanted']
+
     example_title = "A Computer Scientist Meeting"
 
-    previous = ""
-    for kws in tqdm(test_story):
-        # kws = four_seasons_story_line[2]
-        print(f"keyword: {kws}")
-        rhyme_word = kws[-1]
-        prefix = """Keywords: """ + "; ".join(kws) + ". Sentence in reverse order: "
-        prompt = (
-            """<|startoftext|> Title: """
-            + example_title
-            + " "
-            + previous
-            + prefix
-            + rhyme_word
-        )
-        p_state, n_syllables = get_phones(rhyme_word)
-        result_list = []
-        # to add hard constraints, specify keywords, otherwise use = []
-        gen_recursion(
-            score_model, prompt, p_state, n_syllables, keywords=[], beam_size=5
-        )
-        previous = previous + result_list[0] + ","
+    result = gen_villanelle(model=model, keywords_arr=test_story)
+    print(f"result: {result}")
 
-    print(f"result: {previous}")
+    # previous = ""
+    # for kws in tqdm(test_story):
+    #     # kws = four_seasons_story_line[2]
+    #     print(f"keyword: {kws}")
+    #     rhyme_word = kws[-1]
+    #     prefix = """Keywords: """ + "; ".join(kws) + ". Sentence in reverse order: "
+    #     prompt = (
+    #         """<|startoftext|> Title: """
+    #         + example_title
+    #         + " "
+    #         + previous
+    #         + prefix
+    #         + rhyme_word
+    #     )
+    #     p_state, n_syllables = get_phones(rhyme_word)
+    #     result_list = []
+    #     # to add hard constraints, specify keywords, otherwise use = []
+    #     gen_recursion(
+    #         score_model, prompt, p_state, n_syllables, keywords=[], beam_size=5
+    #     )
+    #     previous = previous + result_list[0] + ","
+    #
+    # print(f"result: {previous}")
