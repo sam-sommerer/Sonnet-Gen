@@ -33,12 +33,12 @@ def alternating(stress):
     return check1 and check2
 
 
-# def get_phones(rhyme_word):
-#     phone = pronouncing.phones_for_word(rhyme_word)[0]
-#     stress = get_stress(phone)
-#     p_state = stress[0]
-#     n_syllables = len(stress)
-#     return p_state, n_syllables
+def get_phones(rhyme_word):
+    phone = pronouncing.phones_for_word(rhyme_word)[0]
+    stress = get_stress(phone)
+    p_state = stress[0]
+    n_syllables = len(stress)
+    return p_state, n_syllables
 
 
 def top_k_top_p_filtering(
@@ -135,38 +135,31 @@ def generate_next_word(model, input_ids1, temperature=0.85, topk=100, device="cu
     return tokenizer.decode(input_ids1[0]).split()[-1], False
 
 
-# def get_valid_samples(model, prompt, p_state, n_syllables, keywords):
-def get_valid_samples(model, prompt, keywords):
+def get_valid_samples(model, prompt, p_state, n_syllables, keywords):
     # print(f"enters_valid_samples")
     # print(f"\tkeywords: {keywords}")
-    # states = []
-    # all_n_syl = []
+    states = []
+    all_n_syl = []
 
     prompts = []
     all_keywords = []
     # insert the keyword whenever possible
     for source_word in keywords:
-        # phone = pronouncing.phones_for_word(source_word)[0]
-        # stress = get_stress(phone)
-        # if not alternating(stress):
-        #     continue
-        #
-        # # if the word is single syllable and can be either stressed or unstressed, flag = True
-        # can_be_stressed_or_unstressed = check_either_stress(stress, source_word)
-        #
-        # if stress[-1] == 1 - p_state or can_be_stressed_or_unstressed:
-        #     states.append(stress[0])
-        #     all_n_syl.append(n_syllables + len(stress))
-        #     prompts.append(prompt + " " + source_word)
-        #     copy = keywords.copy()
-        #     copy.remove(source_word)
-        #     all_keywords.append(copy)
-        # states.append(stress[0])
-        # all_n_syl.append(n_syllables + len(stress))
-        prompts.append(prompt + " " + source_word)
-        copy = keywords.copy()
-        copy.remove(source_word)
-        all_keywords.append(copy)
+        phone = pronouncing.phones_for_word(source_word)[0]
+        stress = get_stress(phone)
+        if not alternating(stress):
+            continue
+
+        # if the word is single syllable and can be either stressed or unstressed, flag = True
+        can_be_stressed_or_unstressed = check_either_stress(stress, source_word)
+
+        if stress[-1] == 1 - p_state or can_be_stressed_or_unstressed:
+            states.append(stress[0])
+            all_n_syl.append(n_syllables + len(stress))
+            prompts.append(prompt + " " + source_word)
+            copy = keywords.copy()
+            copy.remove(source_word)
+            all_keywords.append(copy)
 
     # The normal process of decoding
     input_ids = tokenizer(prompt, return_tensors="pt").input_ids.cuda()
@@ -180,43 +173,38 @@ def get_valid_samples(model, prompt, keywords):
         if (token not in tokens) and (token not in keywords):
             # print(token, tokens)
             try:
-                # phone = pronouncing.phones_for_word(token)[0]
-                # stress = get_stress(phone)
-                # if not alternating(stress):
-                #     continue
+                phone = pronouncing.phones_for_word(token)[0]
+                stress = get_stress(phone)
+                if not alternating(stress):
+                    continue
 
                 # if the word is single syllable and can be either stressed or unstressed, flag = True
-                # can_be_stressed_or_unstressed = check_either_stress(stress, token)
+                can_be_stressed_or_unstressed = check_either_stress(stress, token)
 
-                # if stress[-1] == 1 - p_state:
-                # print(f"\t\tadding token: {token}")
-                # tokens.append(token)
-                # states.append(stress[0])
-                # all_n_syl.append(n_syllables + len(stress))
-                # prompts.append(prompt + " " + token)
-                # all_keywords.append(keywords)
-                tokens.append(token)
-                # states.append(stress[0])
-                # all_n_syl.append(n_syllables + len(stress))
-                prompts.append(prompt + " " + token)
-                all_keywords.append(keywords)
+                if stress[-1] == 1 - p_state or can_be_stressed_or_unstressed:
+                    # print(f"\t\tadding token: {token}")
+                    tokens.append(token)
+                    states.append(stress[0])
+                    all_n_syl.append(n_syllables + len(stress))
+                    prompts.append(prompt + " " + token)
+                    all_keywords.append(keywords)
             except:
                 continue
 
-    return prompts, all_keywords
+    return prompts, states, all_n_syl, all_keywords
 
 
-# def check_either_stress(stress, source_word, loose=False):
-#     if loose:
-#         return len(stress) == 1
-#     if len(stress) == 1 and len(pronouncing.phones_for_word(source_word)) > 1:
-#         phone0 = pronouncing.phones_for_word(source_word)[0]
-#         phone1 = pronouncing.phones_for_word(source_word)[1]
-#         stress0 = [int(s[-1]) for s in phone0.split() if s[-1].isdigit()]
-#         stress1 = [int(s[-1]) for s in phone1.split() if s[-1].isdigit()]
-#         if stress0 + stress1 == 1 and stress0 * stress1 == 0:
-#             return True
-#     return False
+def check_either_stress(stress, source_word, loose=False):
+    if loose:
+        return len(stress) == 1
+    if len(stress) == 1 and len(pronouncing.phones_for_word(source_word)) > 1:
+        phone0 = pronouncing.phones_for_word(source_word)[0]
+        phone1 = pronouncing.phones_for_word(source_word)[1]
+        stress0 = [int(s[-1]) for s in phone0.split() if s[-1].isdigit()]
+        stress1 = [int(s[-1]) for s in phone1.split() if s[-1].isdigit()]
+        if stress0 + stress1 == 1 and stress0 * stress1 == 0:
+            return True
+    return False
 
 
 def reverse_order(line):
@@ -241,13 +229,12 @@ def beam_search(model, true_beams, beam_size=5):
     return list(beam_scorer.keys())[:beam_size]
 
 
-# def gen_recursion(model, prompt, p_state, n_syllables, keywords, beam_size):
-def gen_recursion(model, prompt, keywords, beam_size):
+def gen_recursion(model, prompt, p_state, n_syllables, keywords, beam_size):
     # global result_list
     """I modified this criterion to speed up the example.
     I suggest to add non-repeat-unigram (= 3) and keyword checking
     """
-    if len(prompt.split(": ")[-1].split()) >= random.randint(8, 10):
+    if n_syllables >= 10:
         print(f"enters base case")
         line = prompt.split(": ")[-1]
         reversed_words = reverse_order(line)
@@ -264,21 +251,17 @@ def gen_recursion(model, prompt, keywords, beam_size):
             print(f"\tlen(result_list) after beam search: {len(result_list)}")
         print(f"\tresult_list before return: {result_list}")
         return result_list
-    # prompts, states, all_n_sys, all_keywords = get_valid_samples(
-    #     model, prompt, p_state, n_syllables, keywords
-    # )
-    # prompts, all_keywords = get_valid_samples(
-    #     model, prompt, p_state, n_syllables, keywords
-    # )
-    prompts, all_keywords = get_valid_samples(model, prompt, keywords)
+    prompts, states, all_n_sys, all_keywords = get_valid_samples(
+        model, prompt, p_state, n_syllables, keywords
+    )
     print(prompts)
     # prune the recursion tree by randomly selecting one prompt to decode, this speeds up the example for demo but compromises diversity
     k = random.randint(0, len(prompts))
     return gen_recursion(
         model,
         prompts[0],
-        # states[0],
-        # all_n_sys[0],
+        states[0],
+        all_n_sys[0],
         all_keywords[0],
         beam_size,
         # result_list=result_list,
@@ -313,14 +296,14 @@ def gen_villanelle(model, title, keywords_arr):
                 + prefix
                 + rhyme_word
             )
-            # p_state, n_syllables = get_phones(rhyme_word)
+            p_state, n_syllables = get_phones(rhyme_word)
             # result_list = []
             # to add hard constraints, specify keywords, otherwise use = []
             result_list = gen_recursion(
                 model,
                 prompt,
-                # p_state,
-                # n_syllables,
+                p_state,
+                n_syllables,
                 keywords=[],
                 beam_size=5,
                 # result_list=[],
