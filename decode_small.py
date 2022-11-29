@@ -227,8 +227,8 @@ def beam_search(model, true_beams, beam_size=5):
     return list(beam_scorer.keys())[:beam_size]
 
 
-def gen_recursion(model, prompt, p_state, n_syllables, keywords, beam_size):
-    global result_list
+def gen_recursion(model, prompt, p_state, n_syllables, keywords, beam_size, result_list):
+    # global result_list
     """I modified this criterion to speed up the example.
     I suggest to add non-repeat-unigram (= 3) and keyword checking
     """
@@ -249,7 +249,7 @@ def gen_recursion(model, prompt, p_state, n_syllables, keywords, beam_size):
     # prune the recursion tree by randomly selecting one prompt to decode, this speeds up the example for demo but compromises diversity
     k = random.randint(0, len(prompts))
     gen_recursion(
-        model, prompts[0], states[0], all_n_sys[0], all_keywords[0], beam_size
+        model, prompts[0], states[0], all_n_sys[0], all_keywords[0], beam_size, result_list=
     )
     # original code that explodes recursion exponentially
     # for prompt,p_state, n_syllables, keyword in zip(prompts, states, all_n_sys, all_keywords):
@@ -282,9 +282,9 @@ def gen_villanelle(model, keywords_arr):
                 + rhyme_word
             )
             p_state, n_syllables = get_phones(rhyme_word)
-            result_list = []
+            # result_list = []
             # to add hard constraints, specify keywords, otherwise use = []
-            gen_recursion(model, prompt, p_state, n_syllables, keywords=[], beam_size=5)
+            result_list = gen_recursion(model, prompt, p_state, n_syllables, keywords=[], beam_size=5, result_list=[])
             result = result + result_list[0] + ","
 
         if i == 0:
@@ -299,18 +299,26 @@ def gen_villanelle(model, keywords_arr):
 if __name__ == "__main__":
     # Download Finetuned GPT-Neo
     # Set the random seed to a fixed value to get reproducible results
-    torch.manual_seed(42)
-    tokenizer = GPT2Tokenizer.from_pretrained(
-        "EleutherAI/gpt-neo-1.3B",
-        bos_token="<|startoftext|>",
-        eos_token="<|endoftext|>",
-        pad_token="<|pad|>",
-    )
+    # torch.manual_seed(42)
+    # tokenizer = GPT2Tokenizer.from_pretrained(
+    #     "EleutherAI/gpt-neo-1.3B",
+    #     bos_token="<|startoftext|>",
+    #     eos_token="<|endoftext|>",
+    #     pad_token="<|pad|>",
+    # )
+    #
+    # # Download the pre-trained GPT-Neo model and transfer it to the GPU
+    # model = GPTNeoForCausalLM.from_pretrained(
+    #     "FigoMe/news-gpt-neo-1.3B-keywords-line-by-line-reverse"
+    # ).cuda()
 
-    # Download the pre-trained GPT-Neo model and transfer it to the GPU
-    model = GPTNeoForCausalLM.from_pretrained(
-        "FigoMe/news-gpt-neo-1.3B-keywords-line-by-line-reverse"
-    ).cuda()
+    tokenizer = GPT2Tokenizer.from_pretrained("gpt2",
+          bos_token="<|startoftext|>",
+          eos_token="<|endoftext|>",
+          pad_token="<|pad|>",
+      )
+    model = GPT2LMHeadModel.from_pretrained("gpt2")
+
     # Resize the token embeddings because we've just added 3 new tokens
     model.resize_token_embeddings(len(tokenizer))
 
