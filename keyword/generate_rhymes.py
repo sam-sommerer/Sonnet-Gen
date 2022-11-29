@@ -12,7 +12,7 @@ def get_rhyme_candidates(word, N):
 
 
 def generate_rhymes(model, keywords, initial_rhyming_lines, countin_rhyming_lines):
-    for i in range(7):
+    for i in range(len(initial_rhyming_lines)):
         # indices for keywords are 1,3,5.
         word = keywords.split(" Keywords")[initial_rhyming_lines[i]].split("'")[5]
         print(f"word: {word}")

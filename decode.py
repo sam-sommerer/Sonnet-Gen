@@ -274,19 +274,17 @@ def gen_villanelle(model, keywords_arr):
             rhyme_word = kws[-1]
             prefix = """Keywords: """ + "; ".join(kws) + ". Sentence in reverse order: "
             prompt = (
-                    """<|startoftext|> Title: """
-                    + example_title
-                    + " "
-                    + result
-                    + prefix
-                    + rhyme_word
+                """<|startoftext|> Title: """
+                + example_title
+                + " "
+                + result
+                + prefix
+                + rhyme_word
             )
             p_state, n_syllables = get_phones(rhyme_word)
             result_list = []
             # to add hard constraints, specify keywords, otherwise use = []
-            gen_recursion(
-                model, prompt, p_state, n_syllables, keywords=[], beam_size=5
-            )
+            gen_recursion(model, prompt, p_state, n_syllables, keywords=[], beam_size=5)
             result = result + result_list[0] + ","
 
         if i == 0:
