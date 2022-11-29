@@ -7,6 +7,8 @@ from tqdm import tqdm
 import random
 from torch import Tensor
 from torch.nn import functional as F
+from utils import convert_keywords_string_to_list
+import argparse
 
 import warnings
 
@@ -269,7 +271,7 @@ def gen_recursion(model, prompt, p_state, n_syllables, keywords, beam_size):
     #     gen_recursion(prompt,p_state, n_syllables, keywords)
 
 
-def gen_villanelle(model, keywords_arr):
+def gen_villanelle(model, title, keywords_arr):
     result = ""
     first_line_repeat_indices = [5, 11, 17]
     first_line_repeat = ""
@@ -288,7 +290,7 @@ def gen_villanelle(model, keywords_arr):
             prefix = """Keywords: """ + "; ".join(kws) + ". Sentence in reverse order: "
             prompt = (
                 """<|startoftext|> Title: """
-                + example_title
+                + title
                 + " "
                 + result
                 + prefix
@@ -401,7 +403,14 @@ if __name__ == "__main__":
 
     example_title = "A Computer Scientist Meeting"
 
-    result = gen_villanelle(model=model, keywords_arr=villanelle_keywords)
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--title", type=str, default=example_title)
+    parser.add_argument("--keywords", type=str, default=villanelle_keywords)
+    args = parser.parse_args()
+
+    keywords = convert_keywords_string_to_list(args.keywords)
+
+    result = gen_villanelle(model=model, title=args.title, keywords_arr=keywords)
     print(f"result: {result}")
     print(result.replace(",", "\n"))
 

@@ -67,8 +67,6 @@ if __name__ == "__main__":
     path = "facebook/bart-base"
     model = pipeline("fill-mask", model=path)
 
-
-
     # zero index
     # initial_rhyming_lines = [0,1,4,5,8,9,12]
     # countin_rhyming_lines = [2,3,6,7,10,11,13]
