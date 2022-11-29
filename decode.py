@@ -134,8 +134,8 @@ def generate_next_word(model, input_ids1, temperature=0.85, topk=100, device="cu
 
 
 def get_valid_samples(model, prompt, p_state, n_syllables, keywords):
-    print(f"enters_valid_samples")
-    print(f"\tkeywords: {keywords}")
+    # print(f"enters_valid_samples")
+    # print(f"\tkeywords: {keywords}")
     states = []
     all_n_syl = []
 
@@ -164,10 +164,10 @@ def get_valid_samples(model, prompt, p_state, n_syllables, keywords):
     tokens = []
     # print(f"gets to valid_sample loop")
     while len(tokens) < 3:
-        print(f"\ttokens: {tokens}")
+        # print(f"\ttokens: {tokens}")
         # print(f"\tinput_ids: {input_ids}")
         token, eos = generate_next_word(model, input_ids)
-        print(f"\t\ttoken: {token}")
+        # print(f"\t\ttoken: {token}")
         if (token not in tokens) and (token not in keywords):
             # print(token, tokens)
             try:
@@ -180,7 +180,7 @@ def get_valid_samples(model, prompt, p_state, n_syllables, keywords):
                 can_be_stressed_or_unstressed = check_either_stress(stress, token)
 
                 if stress[-1] == 1 - p_state or can_be_stressed_or_unstressed:
-                    print(f"\t\tadding token: {token}")
+                    # print(f"\t\tadding token: {token}")
                     tokens.append(token)
                     states.append(stress[0])
                     all_n_syl.append(n_syllables + len(stress))
@@ -235,14 +235,19 @@ def gen_recursion(
     I suggest to add non-repeat-unigram (= 3) and keyword checking
     """
     if n_syllables >= 10:
+        print(f"enters base case")
         line = prompt.split(": ")[-1]
         reversed_words = reverse_order(line)
+        print(f"\treversed_words: {reversed_words}")
         result_list.append(reversed_words)
+        print(f"\tlen(result_list): {len(result_list)}")
+
         # print(f'len of results list: {len(result_list)}')
         if len(result_list) > 0:
             # print('Going in Beam Search')
             result_list = beam_search(model, result_list, beam_size=beam_size)
             # print(result_list)
+            print(f"\tlen(result_list) after beam search: {len(result_list)}")
         return result_list
     prompts, states, all_n_sys, all_keywords = get_valid_samples(
         model, prompt, p_state, n_syllables, keywords
