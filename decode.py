@@ -248,7 +248,7 @@ def gen_recursion(model, prompt, p_state, n_syllables, keywords, beam_size):
             # print(result_list)
             print(f"\tlen(result_list) after beam search: {len(result_list)}")
         print(f"\tresult_list before return: {result_list}")
-        return result_list
+        return result_list[0]
     prompts, states, all_n_sys, all_keywords = get_valid_samples(
         model, prompt, p_state, n_syllables, keywords
     )
