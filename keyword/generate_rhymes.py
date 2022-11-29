@@ -1,6 +1,7 @@
 from transformers import pipeline
 import pronouncing
 import random
+import argparse
 
 
 def get_rhyme_candidates(word, N):
@@ -66,6 +67,8 @@ if __name__ == "__main__":
     path = "facebook/bart-base"
     model = pipeline("fill-mask", model=path)
 
+
+
     # zero index
     # initial_rhyming_lines = [0,1,4,5,8,9,12]
     # countin_rhyming_lines = [2,3,6,7,10,11,13]
@@ -83,9 +86,13 @@ if __name__ == "__main__":
     # example_keywords = "Keywords 1: ['years', 'time', 'ago'] . Keywords 2: ['life', 'happened', 'quickly'] . Keywords 3: ['family', 'love', 'wanted'] . Keywords 4: ['year', 'long', 'lived'] . Keywords 5: ['day', 'couple','months'] . Keywords 6: ['home','sitting', 'room'] . Keywords 7: ['night', 'n’t','sleep'] . Keywords 8: ['bed', 'felt', 'cold'] . Keywords 9: ['eyes', 'looked', 'back'] . Keywords 10: ['window','staring', 'darkness'] . Keywords 11: ['doorway', 'heard','screaming'] . Keywords 12: ['open', 'opened','stairs'] . Keywords 13: ['floor','slowly', 'walked'] . Keywords 14: ['bedroom', 'closet', 'turned'] . Keywords 15: ['moment','shook', 'head'] . Keywords 16: ['smiled', 'told', 'goodbye'] . Keywords 17: ['face', 'laughed', 'gave'] . Keywords 18: ['breath','started', 'running'] . Keywords 19: ['house', 'ran', 'downstairs']"
     example_keywords = "Keywords 1: ['years', 'time', 'ago'] Keywords 2: ['life', 'happened', 'finally'] Keywords 3: ['family', 'love', 'wanted'] Keywords 4: ['year', 'long', 'lived'] Keywords 5: ['day', 'couple','months'] Keywords 6: ['years', 'time', 'ago'] Keywords 7: ['night', 'n’t','sleep'] Keywords 8: ['bed', 'felt', 'cold'] Keywords 9: ['family', 'love', 'wanted'] Keywords 10: ['window','staring', 'darkness'] Keywords 11: ['doorway', 'heard','screaming'] Keywords 12: ['years', 'time', 'ago'] Keywords 13: ['floor','slowly', 'walked'] Keywords 14: ['bedroom', 'closet', 'turned'] Keywords 15: ['family', 'love', 'wanted'] Keywords 16: ['smiled', 'told', 'goodbye'] Keywords 17: ['face', 'laughed', 'gave'] Keywords 18: ['years', 'time', 'ago'] Keywords 19: ['family', 'love', 'wanted']"
 
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--keywords", type=str, default=example_keywords)
+    args = parser.parse_args()
+
     rhyming_keywords = generate_rhymes(
         model=model,
-        keywords=example_keywords,
+        keywords=args.keywords,
         initial_rhyming_lines=initial_rhyming_lines,
         countin_rhyming_lines=countin_rhyming_lines,
     )
