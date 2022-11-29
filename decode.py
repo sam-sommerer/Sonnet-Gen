@@ -228,7 +228,7 @@ def beam_search(model, true_beams, beam_size=5):
 
 
 def gen_recursion(
-    model, prompt, p_state, n_syllables, keywords, beam_size, result_list
+    model, prompt, p_state, n_syllables, keywords, beam_size
 ):
     # global result_list
     """I modified this criterion to speed up the example.
@@ -239,6 +239,7 @@ def gen_recursion(
         line = prompt.split(": ")[-1]
         reversed_words = reverse_order(line)
         print(f"\treversed_words: {reversed_words}")
+        result_list = list()
         result_list.append(reversed_words)
         print(f"\tlen(result_list): {len(result_list)}")
 
@@ -262,7 +263,7 @@ def gen_recursion(
         all_n_sys[0],
         all_keywords[0],
         beam_size,
-        result_list=result_list,
+        # result_list=result_list,
     )
     # original code that explodes recursion exponentially
     # for prompt,p_state, n_syllables, keyword in zip(prompts, states, all_n_sys, all_keywords):
@@ -304,7 +305,7 @@ def gen_villanelle(model, keywords_arr):
                 n_syllables,
                 keywords=[],
                 beam_size=5,
-                result_list=[],
+                # result_list=[],
             )
             print(f"result_list: {result_list}")
             result = result + result_list[0] + ","
