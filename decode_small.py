@@ -1,6 +1,6 @@
 import torch
-from transformers import GPT2Tokenizer, GPTNeoForCausalLM, GPTNeoModel
-from transformers import GPT2Tokenizer, GPT2LMHeadModel
+from transformers import GPTNeoForCausalLM, GPTNeoModel
+from transformers import GPT2Tokenizer, GPT2LMHeadModel, GPT2Model
 import pronouncing
 from transformers import Trainer, TrainingArguments
 from tqdm import tqdm

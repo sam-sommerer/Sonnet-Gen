@@ -227,8 +227,10 @@ def beam_search(model, true_beams, beam_size=5):
     return list(beam_scorer.keys())[:beam_size]
 
 
-def gen_recursion(model, prompt, p_state, n_syllables, keywords, beam_size):
-    global result_list
+def gen_recursion(
+    model, prompt, p_state, n_syllables, keywords, beam_size, result_list
+):
+    # global result_list
     """I modified this criterion to speed up the example.
     I suggest to add non-repeat-unigram (= 3) and keyword checking
     """
@@ -282,9 +284,17 @@ def gen_villanelle(model, keywords_arr):
                 + rhyme_word
             )
             p_state, n_syllables = get_phones(rhyme_word)
-            result_list = []
+            # result_list = []
             # to add hard constraints, specify keywords, otherwise use = []
-            gen_recursion(model, prompt, p_state, n_syllables, keywords=[], beam_size=5)
+            result_list = gen_recursion(
+                model,
+                prompt,
+                p_state,
+                n_syllables,
+                keywords=[],
+                beam_size=5,
+                result_list=[],
+            )
             result = result + result_list[0] + ","
 
         if i == 0:
