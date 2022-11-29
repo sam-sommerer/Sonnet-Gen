@@ -227,9 +227,7 @@ def beam_search(model, true_beams, beam_size=5):
     return list(beam_scorer.keys())[:beam_size]
 
 
-def gen_recursion(
-    model, prompt, p_state, n_syllables, keywords, beam_size
-):
+def gen_recursion(model, prompt, p_state, n_syllables, keywords, beam_size):
     # global result_list
     """I modified this criterion to speed up the example.
     I suggest to add non-repeat-unigram (= 3) and keyword checking
@@ -249,6 +247,7 @@ def gen_recursion(
             result_list = beam_search(model, result_list, beam_size=beam_size)
             # print(result_list)
             print(f"\tlen(result_list) after beam search: {len(result_list)}")
+        print(f"\tresult_list before return: {result_list}")
         return result_list
     prompts, states, all_n_sys, all_keywords = get_valid_samples(
         model, prompt, p_state, n_syllables, keywords
