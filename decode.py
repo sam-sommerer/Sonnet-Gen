@@ -251,7 +251,13 @@ def gen_recursion(
     # prune the recursion tree by randomly selecting one prompt to decode, this speeds up the example for demo but compromises diversity
     k = random.randint(0, len(prompts))
     gen_recursion(
-        model, prompts[0], states[0], all_n_sys[0], all_keywords[0], beam_size, result_list=result_list
+        model,
+        prompts[0],
+        states[0],
+        all_n_sys[0],
+        all_keywords[0],
+        beam_size,
+        result_list=result_list,
     )
     # original code that explodes recursion exponentially
     # for prompt,p_state, n_syllables, keyword in zip(prompts, states, all_n_sys, all_keywords):
@@ -295,6 +301,7 @@ def gen_villanelle(model, keywords_arr):
                 beam_size=5,
                 result_list=[],
             )
+            print(f"result: {result}")
             result = result + result_list[0] + ","
 
         if i == 0:

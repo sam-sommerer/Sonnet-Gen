@@ -285,6 +285,7 @@ def gen_villanelle(model, keywords_arr):
             # result_list = []
             # to add hard constraints, specify keywords, otherwise use = []
             result_list = gen_recursion(model, prompt, p_state, n_syllables, keywords=[], beam_size=5, result_list=[])
+            print(f"result: {result}")
             result = result + result_list[0] + ","
 
         if i == 0:
