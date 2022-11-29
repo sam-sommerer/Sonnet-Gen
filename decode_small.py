@@ -102,7 +102,7 @@ def generate_next_word(model, input_ids1, temperature=0.85, topk=100, device="cu
         outputs1 = model(input_ids1)
         next_token_logits1 = outputs1[0][:, -1, :]
         next_token_logits1 = top_k_top_p_filtering(next_token_logits1, top_k=topk)
-        logit_zeros = torch.zeros(len(next_token_logits1)).cuda()
+        # logit_zeros = torch.zeros(len(next_token_logits1)).cuda()
         # logit_zeros = torch.zeros(len(next_token_logits1), device=device)
 
         next_token_logits = next_token_logits1 * temperature
@@ -111,7 +111,8 @@ def generate_next_word(model, input_ids1, temperature=0.85, topk=100, device="cu
             1
         )  # sampling next tokens from distribution
         # unfinished_sents = torch.ones(1, dtype=torch.long, device=device)
-        unfinished_sents = torch.ones(1, dtype=torch.long).cuda()
+        # unfinished_sents = torch.ones(1, dtype=torch.long).cuda()
+        unfinished_sents = torch.ones(1, dtype=torch.long)
         tokens_to_add = next_tokens * unfinished_sents + tokenizer.pad_token_id * (
             1 - unfinished_sents
         )  # same content as next_tokens
@@ -134,8 +135,8 @@ def generate_next_word(model, input_ids1, temperature=0.85, topk=100, device="cu
 
 
 def get_valid_samples(model, prompt, p_state, n_syllables, keywords):
-    print(f"enters_valid_samples")
-    print(f"\tkeywords: {keywords}")
+    # print(f"enters_valid_samples")
+    # print(f"\tkeywords: {keywords}")
     states = []
     all_n_syl = []
 
@@ -160,14 +161,15 @@ def get_valid_samples(model, prompt, p_state, n_syllables, keywords):
             all_keywords.append(copy)
 
     # The normal process of decoding
-    input_ids = tokenizer(prompt, return_tensors="pt").input_ids.cuda()
+    # input_ids = tokenizer(prompt, return_tensors="pt").input_ids.cuda()
+    input_ids = tokenizer(prompt, return_tensors="pt").input_ids
     tokens = []
     # print(f"gets to valid_sample loop")
     while len(tokens) < 3:
-        print(f"\ttokens: {tokens}")
+        # print(f"\ttokens: {tokens}")
         # print(f"\tinput_ids: {input_ids}")
         token, eos = generate_next_word(model, input_ids)
-        print(f"\t\ttoken: {token}")
+        # print(f"\t\ttoken: {token}")
         if (token not in tokens) and (token not in keywords):
             # print(token, tokens)
             try:
@@ -180,7 +182,7 @@ def get_valid_samples(model, prompt, p_state, n_syllables, keywords):
                 can_be_stressed_or_unstressed = check_either_stress(stress, token)
 
                 if stress[-1] == 1 - p_state or can_be_stressed_or_unstressed:
-                    print(f"\t\tadding token: {token}")
+                    # print(f"\t\tadding token: {token}")
                     tokens.append(token)
                     states.append(stress[0])
                     all_n_syl.append(n_syllables + len(stress))
@@ -323,7 +325,8 @@ if __name__ == "__main__":
     # Resize the token embeddings because we've just added 3 new tokens
     model.resize_token_embeddings(len(tokenizer))
 
-    device = "cuda:0"
+    # device = "cuda:0"
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     score_model = model
 
     four_seasons_story_line = [
@@ -389,6 +392,7 @@ if __name__ == "__main__":
 
     result = gen_villanelle(model=model, keywords_arr=villanelle_keywords)
     print(f"result: {result}")
+    print(result.replace(",", "\n"))
 
     # previous = ""
     # for kws in tqdm(test_story):

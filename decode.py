@@ -403,6 +403,7 @@ if __name__ == "__main__":
 
     result = gen_villanelle(model=model, keywords_arr=villanelle_keywords)
     print(f"result: {result}")
+    print(result.replace(",", "\n"))
 
     # previous = ""
     # for kws in tqdm(test_story):
