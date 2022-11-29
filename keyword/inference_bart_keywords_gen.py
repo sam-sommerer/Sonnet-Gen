@@ -9,6 +9,7 @@ import torch
 import torch.nn.functional as F
 from torch.utils.data import Dataset, DataLoader, RandomSampler, SequentialSampler
 from torch import cuda
+import argparse
 
 # Importing the T5 modules from huggingface/transformers
 from transformers import BartTokenizer, BartForConditionalGeneration
@@ -151,6 +152,12 @@ def generate_keywords(title, model, tokenizer, device):
 
 if __name__ == "__main__":
     # model_path = 'facebook/bart-large_batch_8_lr_3e-060503-mix-with-eos/model_files'
+    default_title = "The Four Seasons"
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--title", type=str, default=default_title)
+    args = parser.parse_args()
+
     print(f"Beginning")
     model_path = "FigoMe/sonnet_keyword_gen"  # for training
     tokenizer = BartTokenizer.from_pretrained(model_path)
@@ -158,9 +165,7 @@ if __name__ == "__main__":
     device = "cuda:0" if cuda.is_available() else "cpu"
     model = model.to(device)
 
-    title = "The Four Seasons"
-
-    preds = generate_keywords(title, model, tokenizer, device)
+    preds = generate_keywords(args.title, model, tokenizer, device)
     formatted_preds = format_final_output(preds[0])
 
     print(f"\nformatted_preds: {formatted_preds}")
