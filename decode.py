@@ -167,6 +167,7 @@ def get_valid_samples(model, prompt, p_state, n_syllables, keywords):
         print(f"\ttokens: {tokens}")
         # print(f"\tinput_ids: {input_ids}")
         token, eos = generate_next_word(model, input_ids)
+        print(f"\t\ttoken: {token}")
         if (token not in tokens) and (token not in keywords):
             # print(token, tokens)
             try:
