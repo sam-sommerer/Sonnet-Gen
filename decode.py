@@ -135,7 +135,8 @@ def generate_next_word(model, input_ids1, temperature=0.85, topk=100, device="cu
     return tokenizer.decode(input_ids1[0]).split()[-1], False
 
 
-def get_valid_samples(model, prompt, p_state, n_syllables, keywords):
+# def get_valid_samples(model, prompt, p_state, n_syllables, keywords):
+def get_valid_samples(model, prompt, keywords):
     # print(f"enters_valid_samples")
     # print(f"\tkeywords: {keywords}")
     # states = []
@@ -188,12 +189,12 @@ def get_valid_samples(model, prompt, p_state, n_syllables, keywords):
                 # can_be_stressed_or_unstressed = check_either_stress(stress, token)
 
                 # if stress[-1] == 1 - p_state:
-                    # print(f"\t\tadding token: {token}")
-                    # tokens.append(token)
-                    # states.append(stress[0])
-                    # all_n_syl.append(n_syllables + len(stress))
-                    # prompts.append(prompt + " " + token)
-                    # all_keywords.append(keywords)
+                # print(f"\t\tadding token: {token}")
+                # tokens.append(token)
+                # states.append(stress[0])
+                # all_n_syl.append(n_syllables + len(stress))
+                # prompts.append(prompt + " " + token)
+                # all_keywords.append(keywords)
                 tokens.append(token)
                 # states.append(stress[0])
                 # all_n_syl.append(n_syllables + len(stress))
@@ -269,9 +270,7 @@ def gen_recursion(model, prompt, keywords, beam_size):
     # prompts, all_keywords = get_valid_samples(
     #     model, prompt, p_state, n_syllables, keywords
     # )
-    prompts, all_keywords = get_valid_samples(
-        model, prompt, keywords
-    )
+    prompts, all_keywords = get_valid_samples(model, prompt, keywords)
     print(prompts)
     # prune the recursion tree by randomly selecting one prompt to decode, this speeds up the example for demo but compromises diversity
     k = random.randint(0, len(prompts))
