@@ -42,7 +42,7 @@ def make_repeating_lines_rhyme(model, keywords):
     if not found:
         candidates_target_str = [" " + c for c in candidates]
         result = model(mask_input, targets=candidates_target_str)
-        tokens = [res["token_str"] for res in result]
+        tokens = [res["token_str"] for res in result[0]]
         for t in tokens:
             if t in candidates_target_str:
                 print("generated rhyme word:", t)
