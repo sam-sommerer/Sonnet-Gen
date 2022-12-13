@@ -158,7 +158,7 @@ def get_keywords(title):
     device = "cuda:0" if cuda.is_available() else "cpu"
     model = model.to(device)
 
-    preds = generate_keywords(args.title, model, tokenizer, device)
+    preds = generate_keywords(title, model, tokenizer, device)
     formatted_preds = format_final_output(preds[0])
     return formatted_preds
 
