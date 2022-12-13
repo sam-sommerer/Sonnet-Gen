@@ -60,12 +60,12 @@ def fill_in_mask(bart_input, model, tokenizer, device):
 
 
 def create_villanelle_keyword_masks(first_tercet):
-    print(f"\ncreate_villanelle first_tercet: {first_tercet}")
+    # print(f"\ncreate_villanelle first_tercet: {first_tercet}")
     regex_filter = r"\s*\.*\s*Keywords\s*\d*:\s*"
     first_tercet_filtered = re.sub(regex_filter, "|", first_tercet)
     first_tercet_split = first_tercet_filtered.split("|")[1:]
 
-    print(f"first_tercet_split: {first_tercet_split}")
+    # print(f"first_tercet_split: {first_tercet_split}")
 
     num_lines = 19
     result = ""
@@ -88,13 +88,13 @@ def create_villanelle_keyword_masks(first_tercet):
             new_entry = prefix + "['<MASK>', '<MASK>', '<MASK>']"
             result += new_entry
 
-    print(f"villanelle mask: {result}\n")
+    # print(f"villanelle mask: {result}\n")
 
     return result + " </s>"
 
 
 def format_final_output(preds):
-    print(f"\ncreate_villanelle first_tercet: {preds}")
+    # print(f"\ncreate_villanelle first_tercet: {preds}")
     regex_filter = r"\s*\.*\s*Keywords\s*\d*:\s*"
     preds_filtered = re.sub(regex_filter, "|", preds)
     preds_split = preds_filtered.split("|")[1:]
@@ -130,28 +130,28 @@ def generate_keywords(title, model, tokenizer, device):
     first_tercet_bart_input = prompt + title + first_tercet_placeholder
     first_tercet_preds = fill_in_mask(first_tercet_bart_input, model, tokenizer, device)
 
-    print(f"Finished generating first tercet")
-    print(f"first_tercet_preds: {first_tercet_preds}")
+    print(f"\tFinished generating first tercet")
+    # print(f"first_tercet_preds: {first_tercet_preds}")
 
     first_tercet_preds[0] = clean_keywords(first_tercet_preds[0])
-    print(f"cleaned first preds: {first_tercet_preds}")
+    # print(f"cleaned first preds: {first_tercet_preds}")
 
     #  get keywords for rest of villanelle using first tercet keywords
     placeholder = create_villanelle_keyword_masks(first_tercet_preds[0])
     bart_input = prompt + title + placeholder
     preds = fill_in_mask(bart_input, model, tokenizer, device)
 
-    print(f"Finished generating final preds")
-    print(f"preds: {preds}")
+    print(f"\tFinished generating final preds")
+    # print(f"preds: {preds}")
 
     preds[0] = clean_keywords(preds[0])
-    print(f"cleaned preds: {preds}")
+    # print(f"cleaned preds: {preds}")
 
     return preds
 
 
 def get_keywords(title):
-    print(f"Beginning")
+    # print(f"Beginning")
     model_path = "FigoMe/sonnet_keyword_gen"  # for training
     tokenizer = BartTokenizer.from_pretrained(model_path)
     model = BartForConditionalGeneration.from_pretrained(model_path)
@@ -171,7 +171,7 @@ if __name__ == "__main__":
     parser.add_argument("--title", type=str, default=default_title)
     args = parser.parse_args()
 
-    print(f"Beginning")
+    # print(f"Beginning")
     model_path = "FigoMe/sonnet_keyword_gen"  # for training
     tokenizer = BartTokenizer.from_pretrained(model_path)
     model = BartForConditionalGeneration.from_pretrained(model_path)
@@ -181,4 +181,4 @@ if __name__ == "__main__":
     preds = generate_keywords(args.title, model, tokenizer, device)
     formatted_preds = format_final_output(preds[0])
 
-    print(f"\nformatted_preds: {formatted_preds}")
+    # print(f"\nformatted_preds: {formatted_preds}")
