@@ -19,8 +19,8 @@ if __name__ == "__main__":
     raw_keywords = inference_bart_keywords_gen.get_keywords(title=args.title)
     rhyming_keywords = generate_rhymes.get_rhymes(keywords=raw_keywords)
 
-    polished_keywords = aesthetics.imagery_replacement(keywords=rhyming_keywords)
-    poem = decode.get_poem(title=args.title, keywords=polished_keywords)
+    # polished_keywords = aesthetics.imagery_replacement(keywords=rhyming_keywords)
+    # poem = decode.get_poem(title=args.title, keywords=polished_keywords)
 
     print(f"final poem: {poem}")
 
