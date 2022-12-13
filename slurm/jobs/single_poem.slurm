@@ -15,7 +15,7 @@ nvcc --version
 TITLE="Dancing in the Moonlight"
 
 python /home1/sommerer/dev/applied_nlp/Sonnet-Gen/generate_poem.py --title "${TITLE}"
-python /home1/sommerer/dev/applied_nlp/Sonnet-Gen/generate_poem.py --title "${TITLE}" --polish
+#python /home1/sommerer/dev/applied_nlp/Sonnet-Gen/generate_poem.py --title "${TITLE}" --polish
 
 #declare -a titles=("Alone in the Subway"
 #                "Sweet Closure"
