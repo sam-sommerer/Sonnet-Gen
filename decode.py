@@ -246,7 +246,9 @@ def gen_recursion(model, prompt, p_state, n_syllables, keywords, beam_size, devi
         # print(f'len of results list: {len(result_list)}')
         if len(result_list) > 0:
             # print('Going in Beam Search')
-            result_list = beam_search(model, result_list, device=device, beam_size=beam_size)
+            result_list = beam_search(
+                model, result_list, device=device, beam_size=beam_size
+            )
             # print(result_list)
             print(f"\tlen(result_list) after beam search: {len(result_list)}")
         print(f"\tresult_list before return: {result_list}")
@@ -343,11 +345,12 @@ def get_poem(title, keywords):
     # score_model = model
 
     keywords = convert_keywords_string_to_list(keywords)
-    result = gen_villanelle(model=model, title=title, keywords_arr=keywords, device=device)
+    result = gen_villanelle(
+        model=model, title=title, keywords_arr=keywords, device=device
+    )
     print(f"result: {result}")
     print(result.replace(",", "\n"))
     return result
-
 
 
 if __name__ == "__main__":
@@ -405,32 +408,33 @@ if __name__ == "__main__":
         ["closer", "heard", "good"],
     ]
 
-    villanelle_keywords = [
-        ["years", "time", "ago"],
-        ["life", "happened", "finally"],
-        ["family", "love", "wanted"],
-        ["year", "long", "lived"],
-        ["day", "couple", "bickley"],
-        ["years", "time", "ago"],
-        ["night", "n’t", "relived"],
-        ["bed", "felt", "bickley"],
-        ["family", "love", "wanted"],
-        ["window", "staring", "relived"],
-        ["doorway", "heard", "thickly"],
-        ["years", "time", "ago"],
-        ["floor", "slowly", "relived"],
-        ["bedroom", "closet", "wickley"],
-        ["family", "love", "wanted"],
-        ["smiled", "told", "shortlived"],
-        ["face", "laughed", "wickley"],
-        ["years", "time", "ago"],
-        ["family", "love", "wanted"],
-    ]
+    # villanelle_keywords = [
+    #     ["years", "time", "ago"],
+    #     ["life", "happened", "finally"],
+    #     ["family", "love", "wanted"],
+    #     ["year", "long", "lived"],
+    #     ["day", "couple", "bickley"],
+    #     ["years", "time", "ago"],
+    #     ["night", "n’t", "relived"],
+    #     ["bed", "felt", "bickley"],
+    #     ["family", "love", "wanted"],
+    #     ["window", "staring", "relived"],
+    #     ["doorway", "heard", "thickly"],
+    #     ["years", "time", "ago"],
+    #     ["floor", "slowly", "relived"],
+    #     ["bedroom", "closet", "wickley"],
+    #     ["family", "love", "wanted"],
+    #     ["smiled", "told", "shortlived"],
+    #     ["face", "laughed", "wickley"],
+    #     ["years", "time", "ago"],
+    #     ["family", "love", "wanted"],
+    # ]
 
     #  not rhymed
     #  Keywords 1: ['years', 'time', 'ago'] Keywords 2: ['life', 'happened', 'finally'] Keywords 3: ['family', 'love', 'wanted'] Keywords 4: ['year', 'long', 'lived'] Keywords 5: ['day', 'couple','months'] Keywords 6: ['years', 'time', 'ago'] Keywords 7: ['night', 'n’t','sleep'] Keywords 8: ['bed', 'felt', 'cold'] Keywords 9: ['family', 'love', 'wanted'] Keywords 10: ['window','staring', 'darkness'] Keywords 11: ['doorway', 'heard','screaming'] Keywords 12: ['years', 'time', 'ago'] Keywords 13: ['floor','slowly', 'walked'] Keywords 14: ['bedroom', 'closet', 'turned'] Keywords 15: ['family', 'love', 'wanted'] Keywords 16: ['smiled', 'told', 'goodbye'] Keywords 17: ['face', 'laughed', 'gave'] Keywords 18: ['years', 'time', 'ago'] Keywords 19: ['family', 'love', 'wanted']
 
     example_title = "A Computer Scientist Meeting"
+    villanelle_keywords = "Keywords 1: ['years', 'time', 'ago'] Keywords 2: ['life', 'happened', 'finally'] Keywords 3: ['family', 'love', 'go'] Keywords 4: ['year', 'long', 'au'] Keywords 5: ['day', 'couple','stickley'] Keywords 6: ['years', 'time', 'ago'] Keywords 7: ['night', 'n’t','au'] Keywords 8: ['bed', 'felt', 'thickly'] Keywords 9: ['family', 'love', 'go'] Keywords 10: ['window','staring', 'go'] Keywords 11: ['doorway', 'heard','prickly'] Keywords 12: ['years', 'time', 'ago'] Keywords 13: ['floor','slowly', 'slow'] Keywords 14: ['bedroom', 'closet', 'thickly'] Keywords 15: ['family', 'love', 'go'] Keywords 16: ['smiled', 'told', 'no'] Keywords 17: ['face', 'laughed', 'nicley'] Keywords 18: ['years', 'time', 'ago'] Keywords 19: ['family', 'love', 'go']"
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--title", type=str, default=example_title)
@@ -439,7 +443,9 @@ if __name__ == "__main__":
 
     keywords = convert_keywords_string_to_list(args.keywords)
 
-    result = gen_villanelle(model=model, title=args.title, keywords_arr=keywords, device=device)
+    result = gen_villanelle(
+        model=model, title=args.title, keywords_arr=keywords, device=device
+    )
     print(f"result: {result}")
     print(result.replace(",", "\n"))
 
