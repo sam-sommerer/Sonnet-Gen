@@ -20,6 +20,8 @@ def make_repeating_lines_rhyme(model, keywords):
 
     if len(candidates) == 0:
         candidates = get_rhyme_candidates("quickly", N=30)
+        keywords = keywords.replace(word, "quickly")
+        word = "quickly"
 
     temp = keywords.split(" Keywords")[2].split("'")
     print(f"temp: {temp}")
@@ -72,6 +74,8 @@ def generate_rhymes(model, keywords, initial_rhyming_lines, countin_rhyming_line
         # print(f"candidates: {candidates}")
         if len(candidates) == 0:
             candidates = get_rhyme_candidates("quickly", N=30)
+            keywords = keywords.replace(word, "quickly")
+            word = "quickly"
 
         temp = keywords.split(" Keywords")[countin_rhyming_lines[i]].split("'")
         print(f"temp: {temp}")
