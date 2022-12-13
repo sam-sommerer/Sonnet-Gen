@@ -239,13 +239,13 @@ def gen_recursion(
     I suggest to add non-repeat-unigram (= 3) and keyword_gen checking
     """
     if n_syllables >= 10:
-        print(f"enters base case")
+        # print(f"enters base case")
         line = prompt.split(": ")[-1]
         reversed_words = reverse_order(line)
-        print(f"\treversed_words: {reversed_words}")
+        # print(f"\treversed_words: {reversed_words}")
         result_list = list()
         result_list.append(reversed_words)
-        print(f"\tlen(result_list): {len(result_list)}")
+        # print(f"\tlen(result_list): {len(result_list)}")
 
         # print(f'len of results list: {len(result_list)}')
         if len(result_list) > 0:
@@ -258,13 +258,13 @@ def gen_recursion(
                 tokenizer=tokenizer,
             )
             # print(result_list)
-            print(f"\tlen(result_list) after beam search: {len(result_list)}")
-        print(f"\tresult_list before return: {result_list}")
+            # print(f"\tlen(result_list) after beam search: {len(result_list)}")
+        # print(f"\tresult_list before return: {result_list}")
         return result_list
     prompts, states, all_n_sys, all_keywords = get_valid_samples(
         model, prompt, p_state, n_syllables, keywords, tokenizer=tokenizer
     )
-    print(prompts)
+    # print(prompts)
     # prune the recursion tree by randomly selecting one prompt to decode, this speeds up the example for demo but compromises diversity
     k = random.randint(0, len(prompts))
     return gen_recursion(
@@ -291,7 +291,7 @@ def gen_villanelle(model, title, keywords_arr, device, tokenizer=None):
     third_line_repeat = ""
     for i, kws in enumerate(tqdm(keywords_arr)):
         # kws = four_seasons_story_line[2]
-        print(f"keyword_gen {i + 1}: {kws}")
+        # print(f"keyword_gen {i + 1}: {kws}")
 
         if i in first_line_repeat_indices:
             result += first_line_repeat + ","
@@ -323,7 +323,7 @@ def gen_villanelle(model, title, keywords_arr, device, tokenizer=None):
                 # result_list=[],
             )
             # print("type: ")
-            print(f"result_list: {result_list}")
+            # print(f"result_list: {result_list}")
             result = result + result_list[0] + ","
 
         if i == 0:
@@ -363,7 +363,8 @@ def get_poem(title, keywords):
         device=device,
         tokenizer=tokenizer,
     )
-    print(f"result: {result}")
+    # print(f"result: {result}")
+    print("result:")
     print(result.replace(",", "\n"))
     return result.replace(",", "\n")
 
@@ -461,7 +462,7 @@ if __name__ == "__main__":
     result = gen_villanelle(
         model=model, title=args.title, keywords_arr=keywords, device=device
     )
-    print(f"result: {result}")
+    # print(f"result: {result}")
     print(result.replace(",", "\n"))
 
     # previous = ""
