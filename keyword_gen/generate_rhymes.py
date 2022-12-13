@@ -12,7 +12,7 @@ def get_rhyme_candidates(word, N):
         return random.sample(temp, N)
 
 
-def make_repeating_lines_rhyme(keywords):
+def make_repeating_lines_rhyme(model, keywords):
     # repeating_lines_indices = [2, 8, 14, 18]
 
     word = keywords.split(" Keywords")[0].split("'")[5]
@@ -61,7 +61,7 @@ def make_repeating_lines_rhyme(keywords):
 
 
 def generate_rhymes(model, keywords, initial_rhyming_lines, countin_rhyming_lines):
-    keywords = make_repeating_lines_rhyme(keywords)
+    keywords = make_repeating_lines_rhyme(model=model, keywords=keywords)
 
     for i in range(len(initial_rhyming_lines)):
         # indices for keywords are 1,3,5.
