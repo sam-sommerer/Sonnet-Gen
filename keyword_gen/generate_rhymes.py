@@ -24,9 +24,9 @@ def make_repeating_lines_rhyme(model, keywords):
         word = "quickly"
 
     temp = keywords.split(" Keywords")[2].split("'")
-    print(f"temp: {temp}")
+    # print(f"temp: {temp}")
     replace_word = keywords.split(" Keywords")[2].split("'")[5]
-    print(f"replace_word: {replace_word}")
+    # print(f"replace_word: {replace_word}")
 
     mask_input = keywords.replace(replace_word, model.tokenizer.mask_token)
     result = model(mask_input, top_k=5000)
@@ -36,7 +36,7 @@ def make_repeating_lines_rhyme(model, keywords):
     rhyming_word = ""
     for t in tokens:
         if t in candidates:
-            print("generated rhyme word:", t)
+            # print("generated rhyme word:", t)
             found = True
             rhyming_word = t
             break
@@ -47,7 +47,7 @@ def make_repeating_lines_rhyme(model, keywords):
         tokens = [res["token_str"] for res in result[0]]
         for t in tokens:
             if t in candidates_target_str:
-                print("generated rhyme word:", t)
+                # print("generated rhyme word:", t)
                 found = True
                 rhyming_word = t
                 break
@@ -68,7 +68,7 @@ def generate_rhymes(model, keywords, initial_rhyming_lines, countin_rhyming_line
     for i in range(len(initial_rhyming_lines)):
         # indices for keywords are 1,3,5.
         word = keywords.split(" Keywords")[initial_rhyming_lines[i]].split("'")[5]
-        print(f"word: {word}")
+        # print(f"word: {word}")
         candidates = get_rhyme_candidates(word, N=30)
         # candidates = pronouncing.rhymes(word)
         # print(f"candidates: {candidates}")
@@ -78,11 +78,11 @@ def generate_rhymes(model, keywords, initial_rhyming_lines, countin_rhyming_line
             word = "quickly"
 
         temp = keywords.split(" Keywords")[countin_rhyming_lines[i]].split("'")
-        print(f"temp: {temp}")
+        # print(f"temp: {temp}")
         replace_word = keywords.split(" Keywords")[countin_rhyming_lines[i]].split("'")[
             5
         ]
-        print(f"replace_word: {replace_word}")
+        # print(f"replace_word: {replace_word}")
 
         mask_input = keywords.replace(replace_word, model.tokenizer.mask_token)
         result = model(mask_input, top_k=5000)
@@ -91,7 +91,7 @@ def generate_rhymes(model, keywords, initial_rhyming_lines, countin_rhyming_line
         rhyming_word = ""
         for t in tokens:
             if t in candidates:
-                print("generated rhyme word:", t)
+                # print("generated rhyme word:", t)
                 found = True
                 rhyming_word = t
                 break
@@ -102,7 +102,7 @@ def generate_rhymes(model, keywords, initial_rhyming_lines, countin_rhyming_line
             tokens = [res["token_str"] for res in result]
             for t in tokens:
                 if t in candidates_target_str:
-                    print("generated rhyme word:", t)
+                    # print("generated rhyme word:", t)
                     found = True
                     rhyming_word = t
                     break
@@ -131,7 +131,7 @@ def get_rhymes(keywords):
         initial_rhyming_lines=initial_rhyming_lines,
         countin_rhyming_lines=countin_rhyming_lines,
     )
-    print("Generated rhyme words; ", rhyming_keywords, sep="\n")
+    # print("Generated rhyme words; ", rhyming_keywords, sep="\n")
     return rhyming_keywords
 
 
