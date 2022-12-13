@@ -96,7 +96,7 @@ def top_k_top_p_filtering(
 
 
 #  generates the next 10 words (assuming eos token isn't generated first) given an input_id
-def generate_next_word(model, input_ids1, temperature=0.85, topk=100, device="cuda:0"):
+def generate_next_word(model, input_ids1, temperature=0.85, topk=100, device="cuda:0", tokenizer=None):
     # print(f"enters generate_next_word")
     current_word = 0
     for i in range(10):
@@ -135,7 +135,7 @@ def generate_next_word(model, input_ids1, temperature=0.85, topk=100, device="cu
     return tokenizer.decode(input_ids1[0]).split()[-1], False
 
 
-def get_valid_samples(model, tokenizer, prompt, p_state, n_syllables, keywords):
+def get_valid_samples(model, prompt, p_state, n_syllables, keywords, tokenizer=None):
     # print(f"enters_valid_samples")
     # print(f"\tkeywords: {keywords}")
     states = []
@@ -168,7 +168,7 @@ def get_valid_samples(model, tokenizer, prompt, p_state, n_syllables, keywords):
     while len(tokens) < 3:
         # print(f"\ttokens: {tokens}")
         # print(f"\tinput_ids: {input_ids}")
-        token, eos = generate_next_word(model, input_ids)
+        token, eos = generate_next_word(model, input_ids, tokenizer=tokenizer)
         # print(f"\t\ttoken: {token}")
         if (token not in tokens) and (token not in keywords):
             # print(token, tokens)
@@ -229,7 +229,9 @@ def beam_search(model, true_beams, device, beam_size=5):
     return list(beam_scorer.keys())[:beam_size]
 
 
-def gen_recursion(model, tokenizer, prompt, p_state, n_syllables, keywords, beam_size, device):
+def gen_recursion(
+    model, prompt, p_state, n_syllables, keywords, beam_size, device, tokenizer=None
+):
     # global result_list
     """I modified this criterion to speed up the example.
     I suggest to add non-repeat-unigram (= 3) and keyword_gen checking
@@ -261,13 +263,13 @@ def gen_recursion(model, tokenizer, prompt, p_state, n_syllables, keywords, beam
     k = random.randint(0, len(prompts))
     return gen_recursion(
         model,
-        tokenizer,
         prompts[0],
         states[0],
         all_n_sys[0],
         all_keywords[0],
         beam_size,
-        device=device
+        device=device,
+        tokenizer=tokenizer
         # result_list=result_list,
     )
     # original code that explodes recursion exponentially
@@ -275,7 +277,7 @@ def gen_recursion(model, tokenizer, prompt, p_state, n_syllables, keywords, beam
     #     gen_recursion(prompt,p_state, n_syllables, keywords)
 
 
-def gen_villanelle(model, tokenizer, title, keywords_arr, device):
+def gen_villanelle(model, title, keywords_arr, device, tokenizer=None):
     result = ""
     first_line_repeat_indices = [5, 11, 17]
     first_line_repeat = ""
@@ -348,7 +350,11 @@ def get_poem(title, keywords):
 
     keywords = convert_keywords_string_to_list(keywords)
     result = gen_villanelle(
-        model=model, title=title, keywords_arr=keywords, device=device, tokenizer=tokenizer
+        model=model,
+        title=title,
+        keywords_arr=keywords,
+        device=device,
+        tokenizer=tokenizer,
     )
     print(f"result: {result}")
     print(result.replace(",", "\n"))
