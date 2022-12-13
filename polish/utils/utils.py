@@ -9,6 +9,8 @@ import contextlib
 from distutils.dir_util import mkpath
 
 from tqdm import tqdm
+import ast
+import re
 
 
 def make_new_tensor_from_list(items, device_num, dtype=torch.float32):
@@ -427,3 +429,13 @@ def get_score(A, Bs, Cs, gen, all_s2, all_s3, all_s4):
         except:
             continue
     return gen, all_s2, all_s3, all_s4
+
+# convert keywords format 'Keywords 1: ['life', 'happened', 'finally'] Keywords 2: ['family', 'love', 'go'] ...' to 
+# [['life', 'happened', 'finally'], ['family', 'love', 'go'], ...]
+def convert_keywords_string_to_list(keywords_str):
+    regex_filter = r"\s*\.*\s*Keywords\s*\d*:\s*"
+    keywords_filtered = re.sub(regex_filter, "|", keywords_str)
+    keywords_split = keywords_filtered.split("|")[1:]
+
+    # return keywords_split
+    return [ast.literal_eval(keyword_set) for keyword_set in keywords_split]

@@ -5,26 +5,28 @@ nlp = spacy.load("en_core_web_sm")
 import os
 import sys
 
-sys.path.append(os.getcwd())
+if "polish" in os.getcwd():
+    path = os.getcwd()
+else:
+    path = os.path.join(os.getcwd(), "polish")
+sys.path.append(path)
 
+import src
 import src.data.data as data
 import src.data.config as cfg
 import src.interactive.functions as interactive
 
-import os
+import utils.utils as utils
+import argparse
 
 os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
 os.environ["CUDA_VISIBLE_DEVICES"] = "3"
 cfg.device = "cpu"
 
 
-# ### Imagery
-
-# In[4]:
-
-
+### Imagery
 # load model
-model_file = "pretrained_models/reverse_comet_1e-05_adam_32_20000.pickle"
+model_file = os.path.join(path, "pretrained_models/reverse_comet_1e-05_adam_32_20000.pickle")
 opt, state_dict = interactive.load_model_file(model_file)
 data_loader, text_encoder = interactive.load_data("conceptnet", opt)
 
@@ -32,10 +34,6 @@ n_ctx = data_loader.max_e1 + data_loader.max_e2 + data_loader.max_r
 n_vocab = len(text_encoder.encoder) + n_ctx
 
 model = interactive.make_model(opt, 40543, 29, state_dict)
-
-
-# In[5]:
-
 
 def getloss(input_e1, input_e2, relation, prnt=False):
     if relation not in data.conceptnet_data.conceptnet_relations:
@@ -70,10 +68,6 @@ def getloss(input_e1, input_e2, relation, prnt=False):
             )
         return round(value["normalized_loss"], 4)
 
-
-# In[6]:
-
-
 def getPred(input_event, relation, prnt=True, sampling_algorithm="beam-2"):
     sampler = interactive.set_sampler(opt, sampling_algorithm, data_loader)
     outputs = interactive.get_conceptnet_sequence(
@@ -81,37 +75,16 @@ def getPred(input_event, relation, prnt=True, sampling_algorithm="beam-2"):
     )
     return outputs
 
-
-# In[33]:
-
-
 # randomly sample at most N=5 nouns, not from the same line
 # then, select the most confident M candidates to do the replacement
 N = 5
 M = 2
 
-if __name__ == "__main__":
-
-    four_seasons_story_line = [
-        ["snow", "falling", "future"],
-        ["winter", "is", "coming"],
-        ["gather", "honest", "humor"],
-        ["spring", "happy", "blooming"],
-        ["air", "heat", "warm"],
-        ["little", "birds", "may"],
-        ["flowers", "leaves", "storm"],
-        ["summer", "moon", "day"],
-        ["blue", "sky", "clouds"],
-        ["sudden", "rain", "thunder"],
-        ["Summer", "fill", "crowds"],
-        ["Spring", "no", "wonder"],
-        ["seasons", "years", "keep"],
-        ["future", "months", "reap"],
-    ]
-
+def imagery_replacement(keywords):
+    keywords = utils.convert_keywords_string_to_list(keywords)
     location_dict = {}
-    for i, keywords in enumerate(four_seasons_story_line):
-        w1, w2, _ = keywords
+    for i, kws in enumerate(keywords):
+        w1, w2, _ = kws
         ent = nlp(w1)[0]
         if ent.pos_ == "NOUN":
             location_dict[str(ent)] = [i, 0]
@@ -124,7 +97,7 @@ if __name__ == "__main__":
     score_dict = {}
     replace_dict = {}
     polished_lines = []
-    flatten_list = [j for sub in four_seasons_story_line for j in sub]
+    flatten_list = [j for sub in keywords for j in sub]
     for ent in samples:
         result = getPred(
             ent, relation=relations, sampling_algorithm="topk-10", prnt=False
@@ -142,4 +115,16 @@ if __name__ == "__main__":
         ent = ent[0]
         location = location_dict[ent]
         polished_lines.append(location[0])
-        four_seasons_story_line[location[0]][location[1]] = replace_dict[ent]
+        keywords[location[0]][location[1]] = replace_dict[ent]
+
+    return keywords
+
+if __name__ == "__main__":
+
+    villanelle_keywords = "Keywords 1: ['years', 'time', 'ago'] Keywords 2: ['life', 'happened', 'finally'] Keywords 3: ['family', 'love', 'go'] Keywords 4: ['year', 'long', 'au'] Keywords 5: ['day', 'couple','stickley'] Keywords 6: ['years', 'time', 'ago'] Keywords 7: ['night', 'n’t','au'] Keywords 8: ['bed', 'felt', 'thickly'] Keywords 9: ['family', 'love', 'go'] Keywords 10: ['window','staring', 'go'] Keywords 11: ['doorway', 'heard','prickly'] Keywords 12: ['years', 'time', 'ago'] Keywords 13: ['floor','slowly', 'slow'] Keywords 14: ['bedroom', 'closet', 'thickly'] Keywords 15: ['family', 'love', 'go'] Keywords 16: ['smiled', 'told', 'no'] Keywords 17: ['face', 'laughed', 'nicley'] Keywords 18: ['years', 'time', 'ago'] Keywords 19: ['family', 'love', 'go']"
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--keywords", type=str, default=villanelle_keywords)
+    args = parser.parse_args()
+
+    print(imagery_replacement(args.keywords))

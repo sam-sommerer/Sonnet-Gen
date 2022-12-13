@@ -7,7 +7,7 @@ from tqdm import tqdm
 import random
 from torch import Tensor
 from torch.nn import functional as F
-from utils import convert_keywords_string_to_list
+from gen_utils import convert_keywords_string_to_list
 import argparse
 
 import warnings
@@ -354,7 +354,8 @@ def get_poem(title, keywords):
     device = "cuda:0"
     # score_model = model
 
-    keywords = convert_keywords_string_to_list(keywords)
+    if isinstance(keywords, str):
+        keywords = convert_keywords_string_to_list(keywords)
     result = gen_villanelle(
         model=model,
         title=title,
