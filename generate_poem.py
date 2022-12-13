@@ -21,6 +21,7 @@ if __name__ == "__main__":
 
     # polished_keywords = aesthetics.imagery_replacement(keywords=rhyming_keywords)
     # poem = decode.get_poem(title=args.title, keywords=polished_keywords)
+    poem = decode.get_poem(title=args.title, keywords=rhyming_keywords)
 
     print(f"final poem: {poem}")
 
