@@ -251,7 +251,11 @@ def gen_recursion(
         if len(result_list) > 0:
             # print('Going in Beam Search')
             result_list = beam_search(
-                model, result_list, device=device, beam_size=beam_size, tokenizer=tokenizer
+                model,
+                result_list,
+                device=device,
+                beam_size=beam_size,
+                tokenizer=tokenizer,
             )
             # print(result_list)
             print(f"\tlen(result_list) after beam search: {len(result_list)}")

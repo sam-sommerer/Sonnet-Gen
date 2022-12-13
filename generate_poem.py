@@ -23,6 +23,6 @@ if __name__ == "__main__":
     output_filename = args.title + ".txt"
     output_path = output_dir + output_filename
 
-    with open(output_path, "w") as f:
-        f.write(args.title + "\n\n")
+    with open(output_path, "w+") as f:
+        f.write(args.title.replace(" ", "_") + "\n\n")
         f.write(poem)
