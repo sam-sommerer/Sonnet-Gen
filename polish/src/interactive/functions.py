@@ -18,6 +18,12 @@ def load_model_file(model_file):
 
     return opt, state_dict
 
+import os
+import sys
+if "polish" in os.getcwd():
+    path = os.getcwd()
+else:
+    path = os.path.join(os.getcwd(), "polish")
 
 def load_data(dataset, opt):
     if dataset == "atomic":
@@ -26,14 +32,18 @@ def load_data(dataset, opt):
         data_loader = load_conceptnet_data(opt)
 
     # Initialize TextEncoder
-    encoder_path = "model/encoder_bpe_40000.json"
-    bpe_path = "model/vocab_40000.bpe"
+    encoder_path = os.path.join(path, "model/encoder_bpe_40000.json")
+    bpe_path = os.path.join(path, "model/vocab_40000.bpe")
     text_encoder = TextEncoder(encoder_path, bpe_path)
     text_encoder.encoder = data_loader.vocab_encoder
     text_encoder.decoder = data_loader.vocab_decoder
 
     return data_loader, text_encoder
 
+if "polish" in os.getcwd():
+    dirpath = os.getcwd()
+else:
+    dirpath = os.path.join(os.getcwd(), "polish")
 
 def load_atomic_data(opt):
     # Hacky workaround, you may have to change this
@@ -42,9 +52,9 @@ def load_atomic_data(opt):
         opt.data.maxe1 = 17
         opt.data.maxe2 = 35
         opt.data.maxr = 1
-    path = "data/atomic/processed/generation/{}.pickle".format(
+    path = os.path.join(dirpath, "data/atomic/processed/generation/{}.pickle".format(
         utils.make_name_string(opt.data)
-    )
+    ))
     data_loader = data.make_data_loader(opt, opt.data.categories)
     loaded = data_loader.load_data(path)
 
@@ -59,9 +69,9 @@ def load_conceptnet_data(opt):
             opt.data.maxr = 5
         else:
             opt.data.maxr = 1
-    path = "data/conceptnet/processed/generation/{}.pickle".format(
+    path = os.path.join(dirpath, "data/conceptnet/processed/generation/{}.pickle".format(
         utils.make_name_string(opt.data)
-    )
+    ))
     data_loader = data.make_data_loader(opt)
     loaded = data_loader.load_data(path)
     return data_loader

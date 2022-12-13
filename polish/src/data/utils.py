@@ -7,8 +7,9 @@ import torch
 from tqdm import tqdm
 
 
-def load_existing_data_loader(data_loader, path):
-    old_data_loader = torch.load(path, map_location=torch.device("cuda"))
+def load_existing_data_loader(data_loader, path, cpu = False):
+    device = torch.device('cpu') if cpu else torch.device("cuda")
+    old_data_loader = torch.load(path, map_location=device)
 
     for attr in data_loader.__dict__.keys():
         if attr not in old_data_loader.__dict__.keys():
