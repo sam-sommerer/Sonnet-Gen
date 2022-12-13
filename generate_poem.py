@@ -7,6 +7,8 @@ import decode
 import argparse
 
 if __name__ == "__main__":
+    print(f"Begins main process")
+
     parser = argparse.ArgumentParser()
     parser.add_argument("--title", type=str)
     args = parser.parse_args()
