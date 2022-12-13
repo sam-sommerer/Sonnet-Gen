@@ -135,7 +135,7 @@ def generate_next_word(model, input_ids1, temperature=0.85, topk=100, device="cu
     return tokenizer.decode(input_ids1[0]).split()[-1], False
 
 
-def get_valid_samples(model, prompt, p_state, n_syllables, keywords):
+def get_valid_samples(model, tokenizer, prompt, p_state, n_syllables, keywords):
     # print(f"enters_valid_samples")
     # print(f"\tkeywords: {keywords}")
     states = []
@@ -229,7 +229,7 @@ def beam_search(model, true_beams, device, beam_size=5):
     return list(beam_scorer.keys())[:beam_size]
 
 
-def gen_recursion(model, prompt, p_state, n_syllables, keywords, beam_size, device):
+def gen_recursion(model, tokenizer, prompt, p_state, n_syllables, keywords, beam_size, device):
     # global result_list
     """I modified this criterion to speed up the example.
     I suggest to add non-repeat-unigram (= 3) and keyword_gen checking
@@ -254,13 +254,14 @@ def gen_recursion(model, prompt, p_state, n_syllables, keywords, beam_size, devi
         print(f"\tresult_list before return: {result_list}")
         return result_list
     prompts, states, all_n_sys, all_keywords = get_valid_samples(
-        model, prompt, p_state, n_syllables, keywords
+        model, prompt, p_state, n_syllables, keywords, tokenizer=tokenizer
     )
     print(prompts)
     # prune the recursion tree by randomly selecting one prompt to decode, this speeds up the example for demo but compromises diversity
     k = random.randint(0, len(prompts))
     return gen_recursion(
         model,
+        tokenizer,
         prompts[0],
         states[0],
         all_n_sys[0],
@@ -274,7 +275,7 @@ def gen_recursion(model, prompt, p_state, n_syllables, keywords, beam_size, devi
     #     gen_recursion(prompt,p_state, n_syllables, keywords)
 
 
-def gen_villanelle(model, title, keywords_arr, device):
+def gen_villanelle(model, tokenizer, title, keywords_arr, device):
     result = ""
     first_line_repeat_indices = [5, 11, 17]
     first_line_repeat = ""
@@ -309,7 +310,8 @@ def gen_villanelle(model, title, keywords_arr, device):
                 n_syllables,
                 keywords=[],
                 beam_size=5,
-                device=device
+                device=device,
+                tokenizer=tokenizer
                 # result_list=[],
             )
             # print("type: ")
@@ -346,7 +348,7 @@ def get_poem(title, keywords):
 
     keywords = convert_keywords_string_to_list(keywords)
     result = gen_villanelle(
-        model=model, title=title, keywords_arr=keywords, device=device
+        model=model, title=title, keywords_arr=keywords, device=device, tokenizer=tokenizer
     )
     print(f"result: {result}")
     print(result.replace(",", "\n"))
