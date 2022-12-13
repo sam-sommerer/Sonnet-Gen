@@ -23,9 +23,7 @@ def make_repeating_lines_rhyme(keywords):
 
     temp = keywords.split(" Keywords")[2].split("'")
     print(f"temp: {temp}")
-    replace_word = keywords.split(" Keywords")[2].split("'")[
-        5
-    ]
+    replace_word = keywords.split(" Keywords")[2].split("'")[5]
     print(f"replace_word: {replace_word}")
 
     mask_input = keywords.replace(replace_word, model.tokenizer.mask_token)
@@ -113,6 +111,23 @@ def generate_rhymes(model, keywords, initial_rhyming_lines, countin_rhyming_line
         keywords = keywords.replace(replace_word, rhyming_word)
 
     return keywords
+
+
+def get_rhymes(keywords):
+    path = "facebook/bart-base"
+    model = pipeline("fill-mask", model=path)
+
+    initial_rhyming_lines = [0, 0, 0, 0, 0, 1, 1, 1, 1, 1]
+    countin_rhyming_lines = [3, 6, 9, 12, 15, 4, 7, 10, 13, 16]
+
+    rhyming_keywords = generate_rhymes(
+        model=model,
+        keywords=keywords,
+        initial_rhyming_lines=initial_rhyming_lines,
+        countin_rhyming_lines=countin_rhyming_lines,
+    )
+    print("Generated rhyme words; ", rhyming_keywords, sep="\n")
+    return rhyming_keywords
 
 
 if __name__ == "__main__":

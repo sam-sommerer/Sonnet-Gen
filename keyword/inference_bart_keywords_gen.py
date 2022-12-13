@@ -150,6 +150,19 @@ def generate_keywords(title, model, tokenizer, device):
     return preds
 
 
+def get_keywords(title):
+    print(f"Beginning")
+    model_path = "FigoMe/sonnet_keyword_gen"  # for training
+    tokenizer = BartTokenizer.from_pretrained(model_path)
+    model = BartForConditionalGeneration.from_pretrained(model_path)
+    device = "cuda:0" if cuda.is_available() else "cpu"
+    model = model.to(device)
+
+    preds = generate_keywords(args.title, model, tokenizer, device)
+    formatted_preds = format_final_output(preds[0])
+    return formatted_preds
+
+
 if __name__ == "__main__":
     # model_path = 'facebook/bart-large_batch_8_lr_3e-060503-mix-with-eos/model_files'
     default_title = "The Four Seasons"

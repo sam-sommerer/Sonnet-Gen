@@ -213,7 +213,7 @@ def reverse_order(line):
     return " ".join(reversed(words)).replace(" , ", ", ")
 
 
-def beam_search(model, true_beams, beam_size=5):
+def beam_search(model, true_beams, device, beam_size=5):
     beam_scorer = {}
     for sentence in true_beams:
         tokenize_input = tokenizer.tokenize(sentence)
@@ -229,7 +229,7 @@ def beam_search(model, true_beams, beam_size=5):
     return list(beam_scorer.keys())[:beam_size]
 
 
-def gen_recursion(model, prompt, p_state, n_syllables, keywords, beam_size):
+def gen_recursion(model, prompt, p_state, n_syllables, keywords, beam_size, device):
     # global result_list
     """I modified this criterion to speed up the example.
     I suggest to add non-repeat-unigram (= 3) and keyword checking
@@ -246,7 +246,7 @@ def gen_recursion(model, prompt, p_state, n_syllables, keywords, beam_size):
         # print(f'len of results list: {len(result_list)}')
         if len(result_list) > 0:
             # print('Going in Beam Search')
-            result_list = beam_search(model, result_list, beam_size=beam_size)
+            result_list = beam_search(model, result_list, device=device, beam_size=beam_size)
             # print(result_list)
             print(f"\tlen(result_list) after beam search: {len(result_list)}")
         print(f"\tresult_list before return: {result_list}")
@@ -264,6 +264,7 @@ def gen_recursion(model, prompt, p_state, n_syllables, keywords, beam_size):
         all_n_sys[0],
         all_keywords[0],
         beam_size,
+        device=device
         # result_list=result_list,
     )
     # original code that explodes recursion exponentially
@@ -271,7 +272,7 @@ def gen_recursion(model, prompt, p_state, n_syllables, keywords, beam_size):
     #     gen_recursion(prompt,p_state, n_syllables, keywords)
 
 
-def gen_villanelle(model, title, keywords_arr):
+def gen_villanelle(model, title, keywords_arr, device):
     result = ""
     first_line_repeat_indices = [5, 11, 17]
     first_line_repeat = ""
@@ -306,6 +307,7 @@ def gen_villanelle(model, title, keywords_arr):
                 n_syllables,
                 keywords=[],
                 beam_size=5,
+                device=device
                 # result_list=[],
             )
             # print("type: ")
@@ -319,6 +321,33 @@ def gen_villanelle(model, title, keywords_arr):
             third_line_repeat = result_list[0]
 
     return result
+
+
+def get_poem(title, keywords):
+    torch.manual_seed(42)
+    tokenizer = GPT2Tokenizer.from_pretrained(
+        "EleutherAI/gpt-neo-1.3B",
+        bos_token="<|startoftext|>",
+        eos_token="<|endoftext|>",
+        pad_token="<|pad|>",
+    )
+
+    # Download the pre-trained GPT-Neo model and transfer it to the GPU
+    model = GPTNeoForCausalLM.from_pretrained(
+        "FigoMe/news-gpt-neo-1.3B-keywords-line-by-line-reverse"
+    ).cuda()
+    # Resize the token embeddings because we've just added 3 new tokens
+    model.resize_token_embeddings(len(tokenizer))
+
+    device = "cuda:0"
+    # score_model = model
+
+    keywords = convert_keywords_string_to_list(keywords)
+    result = gen_villanelle(model=model, title=title, keywords_arr=keywords, device=device)
+    print(f"result: {result}")
+    print(result.replace(",", "\n"))
+    return result
+
 
 
 if __name__ == "__main__":
@@ -340,7 +369,7 @@ if __name__ == "__main__":
     model.resize_token_embeddings(len(tokenizer))
 
     device = "cuda:0"
-    score_model = model
+    # score_model = model
 
     four_seasons_story_line = [
         ["snow", "falling", "future"],
@@ -410,7 +439,7 @@ if __name__ == "__main__":
 
     keywords = convert_keywords_string_to_list(args.keywords)
 
-    result = gen_villanelle(model=model, title=args.title, keywords_arr=keywords)
+    result = gen_villanelle(model=model, title=args.title, keywords_arr=keywords, device=device)
     print(f"result: {result}")
     print(result.replace(",", "\n"))
 
