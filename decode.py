@@ -96,7 +96,9 @@ def top_k_top_p_filtering(
 
 
 #  generates the next 10 words (assuming eos token isn't generated first) given an input_id
-def generate_next_word(model, input_ids1, temperature=0.85, topk=100, device="cuda:0", tokenizer=None):
+def generate_next_word(
+    model, input_ids1, temperature=0.85, topk=100, device="cuda:0", tokenizer=None
+):
     # print(f"enters generate_next_word")
     current_word = 0
     for i in range(10):
@@ -213,7 +215,7 @@ def reverse_order(line):
     return " ".join(reversed(words)).replace(" , ", ", ")
 
 
-def beam_search(model, true_beams, device, beam_size=5):
+def beam_search(model, true_beams, device, beam_size=5, tokenizer=None):
     beam_scorer = {}
     for sentence in true_beams:
         tokenize_input = tokenizer.tokenize(sentence)
@@ -249,7 +251,7 @@ def gen_recursion(
         if len(result_list) > 0:
             # print('Going in Beam Search')
             result_list = beam_search(
-                model, result_list, device=device, beam_size=beam_size
+                model, result_list, device=device, beam_size=beam_size, tokenizer=tokenizer
             )
             # print(result_list)
             print(f"\tlen(result_list) after beam search: {len(result_list)}")
