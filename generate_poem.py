@@ -26,8 +26,8 @@ if __name__ == "__main__":
 
     output_dir = "generated_poems/"
     output_filename = args.title + ".txt"
-    output_path = output_dir + output_filename
+    output_path = (output_dir + output_filename).replace(" ", "_")
 
     with open(output_path, "w+") as f:
-        f.write(args.title.replace(" ", "_") + "\n\n")
+        f.write(args.title + "\n\n")
         f.write(poem)

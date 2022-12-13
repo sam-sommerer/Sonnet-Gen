@@ -117,7 +117,8 @@ def get_rhymes(keywords):
     path = "facebook/bart-base"
     model = pipeline("fill-mask", model=path)
 
-    initial_rhyming_lines = [0, 0, 0, 0, 0, 1, 1, 1, 1, 1]
+    # initial_rhyming_lines = [0, 0, 0, 0, 0, 1, 1, 1, 1, 1]
+    initial_rhyming_lines = [0, 3, 6, 9, 12, 1, 4, 7, 10, 13]
     countin_rhyming_lines = [3, 6, 9, 12, 15, 4, 7, 10, 13, 16]
 
     rhyming_keywords = generate_rhymes(
