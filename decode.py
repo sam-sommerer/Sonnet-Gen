@@ -364,7 +364,7 @@ def get_poem(title, keywords):
     )
     print(f"result: {result}")
     print(result.replace(",", "\n"))
-    return result
+    return result.replace(",", "\n")
 
 
 if __name__ == "__main__":
