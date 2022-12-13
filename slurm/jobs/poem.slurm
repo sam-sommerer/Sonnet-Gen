@@ -8,7 +8,8 @@
 #SBATCH --gres=gpu:v100:1
 #SBATCH --output=/home1/sommerer/dev/applied_nlp/Sonnet-Gen/slurm/logs/R-%x-%j.out
 
-conda activate sonnet_gpu
+#conda activate sonnet_gpu
+source /home1/sommerer/dev/applied_nlp/Sonnet-Gen/sonnet_venv/bin/activate
 nvcc --version
 
 TITLE="A Blooming Spring Field"
