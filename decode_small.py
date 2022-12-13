@@ -142,7 +142,7 @@ def get_valid_samples(model, prompt, p_state, n_syllables, keywords):
 
     prompts = []
     all_keywords = []
-    # insert the keyword whenever possible
+    # insert the keyword_gen whenever possible
     for source_word in keywords:
         phone = pronouncing.phones_for_word(source_word)[0]
         stress = get_stress(phone)
@@ -232,7 +232,7 @@ def beam_search(model, true_beams, beam_size=5):
 def gen_recursion(model, prompt, p_state, n_syllables, keywords, beam_size, result_list):
     # global result_list
     """I modified this criterion to speed up the example.
-    I suggest to add non-repeat-unigram (= 3) and keyword checking
+    I suggest to add non-repeat-unigram (= 3) and keyword_gen checking
     """
     if n_syllables >= 10:
         line = prompt.split(": ")[-1]
@@ -254,7 +254,7 @@ def gen_recursion(model, prompt, p_state, n_syllables, keywords, beam_size, resu
         model, prompts[0], states[0], all_n_sys[0], all_keywords[0], beam_size, result_list=result_list
     )
     # original code that explodes recursion exponentially
-    # for prompt,p_state, n_syllables, keyword in zip(prompts, states, all_n_sys, all_keywords):
+    # for prompt,p_state, n_syllables, keyword_gen in zip(prompts, states, all_n_sys, all_keywords):
     #     gen_recursion(prompt,p_state, n_syllables, keywords)
 
 
@@ -266,7 +266,7 @@ def gen_villanelle(model, keywords_arr):
     third_line_repeat = ""
     for i, kws in enumerate(tqdm(keywords_arr)):
         # kws = four_seasons_story_line[2]
-        print(f"keyword {i + 1}: {kws}")
+        print(f"keyword_gen {i + 1}: {kws}")
 
         if i in first_line_repeat_indices:
             result += first_line_repeat + ","
@@ -397,7 +397,7 @@ if __name__ == "__main__":
     # previous = ""
     # for kws in tqdm(test_story):
     #     # kws = four_seasons_story_line[2]
-    #     print(f"keyword: {kws}")
+    #     print(f"keyword_gen: {kws}")
     #     rhyme_word = kws[-1]
     #     prefix = """Keywords: """ + "; ".join(kws) + ". Sentence in reverse order: "
     #     prompt = (

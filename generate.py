@@ -193,7 +193,7 @@ def get_valid_samples(prompt, p_state, n_syllables, keywords):
     
     prompts = []
     all_keywords = [] 
-    #insert the keyword whenever possible
+    #insert the keyword_gen whenever possible
     for source_word in keywords:
         phone = pronouncing.phones_for_word(source_word)[0]
         stress = get_stress(phone)
@@ -296,7 +296,7 @@ beam_size = 5
 def gen_recursion(prompt, p_state, n_syllables, keywords):
     global result_list
     '''I modified this criterion to speed up the example.
-    I suggest to add non-repeat-unigram (= 3) and keyword checking
+    I suggest to add non-repeat-unigram (= 3) and keyword_gen checking
     '''
     if n_syllables >= 5: 
         line = prompt.split(': ')[-1]

@@ -8,5 +8,5 @@
 
 conda activate sonnet
 
-python /home1/sommerer/dev/applied_nlp/Sonnet-Gen/keyword/inference_bart_keywords_gen.py
+python /home1/sommerer/dev/applied_nlp/Sonnet-Gen/keyword_gen/inference_bart_keywords_gen.py
 

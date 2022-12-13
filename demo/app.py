@@ -121,7 +121,7 @@ title = st.text_input(
     write_here,
 )
 keyword = generate(title)
-# keyword_clean = keyword.replace('[', ' ')
+# keyword_clean = keyword_gen.replace('[', ' ')
 # keyword_clean = keyword_clean.replace(']', ' ')
 
 with st.sidebar:
@@ -149,7 +149,7 @@ if st.button("Generate Keywords"):
 if st.session_state["Generate Keywords"]:
     edited_keyword = st.text_area(
         "For each piece of news or stories, we train a title-tokeywords framework that predicts the outline.\
-     To this end, we first extract three most salient words per line using the RAKE (Rose et al., 2010) algorithm, which is a domain-independent keyword extraction technique",
+     To this end, we first extract three most salient words per line using the RAKE (Rose et al., 2010) algorithm, which is a domain-independent keyword_gen extraction technique",
         value=keyword,
     )
     if st.button("Generate Rhyme Words"):

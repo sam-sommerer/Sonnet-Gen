@@ -149,7 +149,7 @@ def get_valid_samples(prompt, p_state, n_syllables, keywords):
 
     prompts = []
     all_keywords = []
-    # insert the keyword whenever possible
+    # insert the keyword_gen whenever possible
     for source_word in keywords:
         phone = pronouncing.phones_for_word(source_word)[0]
         stress = get_stress(phone)
@@ -237,7 +237,7 @@ def myBeamSearch(true_beams, beam_size=5):
 def gen_recursion(prompt, p_state, n_syllables, keywords, beam_size):
     global result_list
     """I modified this criterion to speed up the example.
-    I suggest to add non-repeat-unigram (= 3) and keyword checking
+    I suggest to add non-repeat-unigram (= 3) and keyword_gen checking
     """
     if n_syllables >= 10:
         line = prompt.split(": ")[-1]
@@ -258,7 +258,7 @@ def gen_recursion(prompt, p_state, n_syllables, keywords, beam_size):
     k = random.randint(0, len(prompts))
     gen_recursion(prompts[0], states[0], all_n_sys[0], all_keywords[0], beam_size)
     # original code that explodes recursion exponentially
-    # for prompt,p_state, n_syllables, keyword in zip(prompts, states, all_n_sys, all_keywords):
+    # for prompt,p_state, n_syllables, keyword_gen in zip(prompts, states, all_n_sys, all_keywords):
     #     gen_recursion(prompt,p_state, n_syllables, keywords)
 
 

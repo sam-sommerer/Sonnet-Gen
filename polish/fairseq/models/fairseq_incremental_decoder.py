@@ -16,7 +16,7 @@ class FairseqIncrementalDecoder(FairseqDecoder):
     needed about the sequence, e.g., hidden states, convolutional states, etc.
 
     Compared to the standard :class:`FairseqDecoder` interface, the incremental
-    decoder interface allows :func:`forward` functions to take an extra keyword
+    decoder interface allows :func:`forward` functions to take an extra keyword_gen
     argument (*incremental_state*) that can be used to cache state across
     time-steps.
 
